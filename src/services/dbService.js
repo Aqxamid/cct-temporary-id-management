@@ -40,6 +40,10 @@ export function getStudentByRenewalToken(token) {
   return students.find(s => s.renewalToken === token) || null;
 }
 
+export function hasSubmittedAssets(student) {
+  return Boolean(student?.photoUrl && student?.signatureUrl);
+}
+
 export function updateStudent(studentId, updates) {
   const students = readDB();
   const idx = students.findIndex(s => s.studentId === studentId);
@@ -60,6 +64,14 @@ export function updateStudentExpiry(studentId, newExpiryDate) {
 export function createStudent(studentData) {
   const students = readDB();
   students.push(studentData);
+  writeDB(students);
+  return studentData;
+}
+
+export function createStudents(studentData) {
+  if (!Array.isArray(studentData) || studentData.length === 0) return [];
+  const students = readDB();
+  students.push(...studentData);
   writeDB(students);
   return studentData;
 }

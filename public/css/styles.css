@@ -59,6 +59,8 @@ svg { flex: none; }
   transition: width .2s ease;
 }
 .sidebar.collapsed { width: 82px; align-items: center; }
+.sidebar.collapsed .nav-item span { display: none; }
+.sidebar.collapsed .nav-item { justify-content: center; padding-inline: 0; }
 
 .brand { display: flex; align-items: center; gap: 11px; min-width: 0; }
 .brand-mark {
@@ -347,6 +349,7 @@ svg { flex: none; }
 .dropdown button:hover { background: #f7f8fa; }
 .dropdown button:first-child { border-radius: 8px 8px 0 0; }
 .dropdown button:last-child { border-radius: 0 0 8px 8px; }
+.header-more .dropdown { min-width: 190px; }
 
 /* Bulk-select checkbox */
 .bulk-cb {
@@ -358,6 +361,14 @@ svg { flex: none; }
 
 .empty { text-align: center; padding: 80px 10px; color: #778497; }
 .empty h2 { color: #1e293b; }
+
+.import-help-modal { max-width: 480px; }
+.import-help-content { display: grid; gap: 8px; color: #526174; font-size: 12px; line-height: 1.5; }
+.import-help-content strong { color: #172235; font-size: 12px; }
+.import-help-content code { display: block; padding: 9px 10px; border-radius: 6px; background: #f7f8fa; color: #b82e20; font-family: Consolas, monospace; font-size: 11px; }
+.import-help-content p { margin: 0; }
+.import-help-content .import-sample { margin: 0; padding: 10px; overflow-x: auto; border-radius: 6px; background: #172235; color: #e8edf5; font: 11px/1.5 Consolas, monospace; white-space: pre; }
+.import-help-note { padding: 10px; border-left: 3px solid var(--red); background: #fff8f7; color: #7f3027; }
 
 /* ============================================================
    MODALS
@@ -397,6 +408,39 @@ svg { flex: none; }
 }
 .modal-label textarea { min-height: 80px; resize: vertical; }
 .modal-submit { width: 100%; margin-top: 22px; }
+
+.signature-editor {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  padding: 10px;
+  background: #fbfcfd;
+}
+.signature-tabs { display: flex; gap: 6px; margin-bottom: 9px; }
+.signature-tab {
+  border: 1px solid #e1e6eb;
+  border-radius: 6px;
+  background: #fff;
+  color: #64748b;
+  padding: 7px 10px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.signature-tab.active { color: var(--red); border-color: #efb6ad; background: #fff4f2; }
+#presidentSignatureCanvas {
+  display: block;
+  width: 100%;
+  height: 125px;
+  border: 1px dashed #cfd7df;
+  border-radius: 6px;
+  background: #fff;
+  touch-action: none;
+  cursor: crosshair;
+}
+.signature-upload-panel { text-align: center; min-height: 125px; padding: 33px 10px 8px; border: 1px dashed #cfd7df; border-radius: 6px; background: #fff; }
+.president-sig-preview { display: none; max-width: 100%; max-height: 105px; margin: 0 auto; object-fit: contain; }
+.president-sig-preview.visible { display: block; }
+.signature-editor-footer { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; }
+.signature-editor-footer small { color: #7b8795; font-size: 10px; }
 .reject-full {
   width: 100%; border: 0; border-radius: 6px; padding: 12px;
   color: #fff; background: #e04444; font-weight: 700; font-size: 12px;
@@ -489,12 +533,6 @@ svg { flex: none; }
 }
 .outline-button:hover { color: var(--red); border-color: #e9b8b1; }
 
-.zoom {
-  color: #7f8b99; font-size: 10px;
-  display: flex; align-items: center; gap: 9px; margin-top: 18px;
-}
-.zoom input { accent-color: var(--red); flex: 1; }
-.zoom span { color: var(--red); font-size: 16px; }
 
 /* Signature */
 .tabs {

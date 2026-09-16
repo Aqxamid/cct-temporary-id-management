@@ -36,7 +36,6 @@
         <small>Temporary ID Admin</small>
       </span>
     </div>
-    <a href="/admin" class="portal-link">Admin dashboard <span>↗</span></a>
   </header>
 
   <main class="portal-content">
@@ -85,7 +84,7 @@
           <div class="crop-corners"></div>
           <div id="photoPlaceholder">
             <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 8px"><path d="M14.5 4h-5L8 7H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3Z"/><circle cx="12" cy="13" r="3"/></svg>
-            <strong>Your photo appears here</strong>
+            <strong>Your 2x2 photo appears here</strong>
             <small>Square crop · JPG or PNG</small>
           </div>
           <img id="photoPreview" src="" alt="Photo preview" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
@@ -105,11 +104,6 @@
           </button>
         </div>
 
-        <label class="zoom">
-          Zoom
-          <input type="range" id="zoomSlider" min="0" max="100" value="35">
-          <span>+</span>
-        </label>
       </section>
 
       <!-- Signature Card -->
@@ -430,19 +424,6 @@ window.submitAssets = async function() {
 loadStudentInfo();
 initSignature();
 
-// ── Zoom Slider ────────────────────────────────────────────
-const zoomSlider = document.getElementById('zoomSlider');
-if (zoomSlider) {
-  zoomSlider.addEventListener('input', (e) => {
-    // scale from 1.0 to 3.0 based on slider (0 to 100)
-    const scale = 1 + (e.target.value / 50);
-    const preview = document.getElementById('photoPreview');
-    if (preview) {
-      preview.style.transform = `scale(${scale})`;
-      preview.style.transformOrigin = 'center';
-    }
-  });
-}
 </script>
 </body>
 </html>

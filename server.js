@@ -12,6 +12,7 @@ import authRoutes from './src/routes/authRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
 import studentRoutes from './src/routes/studentRoutes.js';
 import renewalRoutes from './src/routes/renewalRoutes.js';
+import { getStudentById, hasSubmittedAssets } from './src/services/dbService.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -65,6 +66,13 @@ app.use('/', studentRoutes);
 
 // ID card print view
 app.get('/id-card/:studentId', (req, res) => {
+  const student = getStudentById(req.params.studentId);
+  if (!student) {
+    return res.status(404).send('Student not found.');
+  }
+  if (!hasSubmittedAssets(student)) {
+    return res.status(409).send('This student is reference data only and has not submitted a temporary ID request.');
+  }
   res.sendFile(path.join(__dirname, 'src', 'views', 'idCardTemplate.html'));
 });
 

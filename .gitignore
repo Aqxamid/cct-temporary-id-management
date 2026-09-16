@@ -3,8 +3,8 @@ node_modules/
 
 # ─── Environment / Secrets ───────────────────────────────────────────────────
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # ─── Runtime Data ────────────────────────────────────────────────────────────
 # Student database (contains PII — never commit)
@@ -21,11 +21,18 @@ uploads/documents/
 # Generated ID documents
 student_temporary_id_doc/
 
+# Runtime-generated president signature; keep the source banner and templates tracked
+public/images/president_signature.png
+!public/images/mis_email_banner.png
+
 # ─── Logs ────────────────────────────────────────────────────────────────────
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+*.tmp
+*.temp
+*.bak
 
 # ─── OS & Editor ─────────────────────────────────────────────────────────────
 .DS_Store

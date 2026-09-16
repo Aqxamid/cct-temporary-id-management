@@ -25,23 +25,27 @@
     </button>
     <nav>
       <p class="nav-label" id="navLabel">WORKSPACE</p>
-      <button class="nav-item active" id="navPending" onclick="setFilter('all')">
+      <button class="nav-item active" id="navPending" onclick="setFilter('PENDING_REVIEW')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
         <span>Pending approvals <b id="pendingCount">0</b></span>
       </button>
-      <button class="nav-item" onclick="setFilter('RENEWAL_REQUESTED')">
+      <button class="nav-item" id="navAll" onclick="setFilter('all')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>
+        <span>All submissions</span>
+      </button>
+      <button class="nav-item" id="navRenewal" onclick="setFilter('RENEWAL_REQUESTED')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.8-4L3 10"/><path d="M3 5v5h5"/><path d="M4 13a8 8 0 0 0 14.8 4L21 14"/><path d="M21 19v-5h-5"/></svg>
         <span>Renewal queue</span>
       </button>
-      <button class="nav-item" onclick="setFilter('APPROVED')">
+      <button class="nav-item" id="navApproved" onclick="setFilter('APPROVED')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
         <span>All approved IDs</span>
       </button>
-      <button class="nav-item" onclick="setFilter('SENT')">
+      <button class="nav-item" id="navSent" onclick="setFilter('SENT')">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
         <span>Email logs</span>
       </button>
-      <button class="nav-item" onclick="openGlobalSettings()">
+      <button class="nav-item" id="navSettings" onclick="openGlobalSettings()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         <span>Global Settings</span>
       </button>
@@ -72,9 +76,18 @@
         <button class="primary-button" id="bulkApproveBtn" style="display:none" onclick="bulkApprove()">
           ✅ Approve Selected (<span id="bulkCount">0</span>)
         </button>
-        <button class="icon-button" aria-label="More options" onclick="showToast('More options coming soon.')">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
-        </button>
+        <div class="more-wrap header-more">
+          <button class="icon-button" aria-label="More options" onclick="toggleDropdown('headerOptions', event)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+          </button>
+          <div class="dropdown hidden" id="headerOptions">
+            <button onclick="refreshDashboard()">Refresh submissions</button>
+            <button onclick="exportVisibleStudents()">Export visible records</button>
+            <button id="importStudentsMenuBtn" onclick="triggerStudentImport()">Import students</button>
+            <button onclick="openImportHelp();closeDropdowns()">Import format help</button>
+          </div>
+        </div>
+        <input id="studentImportInput" type="file" accept=".csv,.json,text/csv,application/json" hidden onchange="importStudents(this)">
       </div>
     </header>
 
@@ -101,7 +114,7 @@
     <!-- List Heading -->
     <div class="list-heading">
       <div>
-        <h2 id="listTitle">All submissions</h2>
+        <h2 id="listTitle">Pending approvals</h2>
         <span id="recordCount">0 records</span>
       </div>
       <button class="sort-button" onclick="toggleSort()" id="sortBtn">Newest first
@@ -216,20 +229,73 @@
       <input type="text" id="presidentTitleInput" placeholder="College President">
     </label>
     <label class="modal-label" style="margin-top:8px">
-      Signature Image
-      <input type="file" id="presidentSigUpload" accept="image/*" style="padding:6px">
+      College President signature
     </label>
+    <div class="signature-editor">
+      <div class="signature-tabs">
+        <button type="button" class="signature-tab active" id="presSigDrawTab" onclick="setPresidentSignatureMode('draw')">Draw e-signature</button>
+        <button type="button" class="signature-tab" id="presSigUploadTab" onclick="setPresidentSignatureMode('upload')">Upload image</button>
+      </div>
+      <canvas id="presidentSignatureCanvas" width="620" height="190" aria-label="College President signature pad"></canvas>
+      <div class="signature-upload-panel hidden" id="presSigUploadPanel">
+        <button type="button" class="outline-button" onclick="triggerPresidentSigUpload()">Choose signature image</button>
+        <input type="file" id="presidentSigUpload" accept="image/*" style="display:none" onchange="handlePresidentSigFile(this)">
+        <img id="presidentSigPreview" class="president-sig-preview" alt="Signature preview">
+      </div>
+      <div class="signature-editor-footer">
+        <small>White background is removed and only the signature is saved.</small>
+        <button type="button" class="clear-button" onclick="clearPresidentSignature()">Clear</button>
+      </div>
+    </div>
     
     <button class="primary-button modal-submit" id="saveSettingsBtn" onclick="saveGlobalSettings()">Save settings</button>
   </div>
 </div>
 
+<!-- Import Help Modal -->
+<div class="modal-backdrop hidden" id="importHelpModal">
+  <div class="modal import-help-modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('importHelpModal')" aria-label="Close import help">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <span class="modal-icon">?</span>
+    <h2>Import students</h2>
+    <p class="modal-copy">Upload a CSV or JSON file containing student reference data.</p>
+    <div class="import-help-content">
+      <strong>Required fields</strong>
+      <code>studentId, fullName, email</code>
+      <strong>Optional fields</strong>
+      <p>dob, course, programStartDate, temporaryExpiryDate, enrollmentStatus, guardianName, address, phone</p>
+      <strong>Supported formats</strong>
+      <p><b>CSV:</b> the first row must contain headers. Headers are case-insensitive.</p>
+      <strong>CSV sample</strong>
+      <pre class="import-sample">studentId,fullName,email,course,programStartDate,temporaryExpiryDate
+2026011827,Juan dela Cruz,juan.delacruz@example.com,BSIT,2026-08-15,2027-03-01</pre>
+      <p><b>JSON:</b> upload an array of student objects or an object with a <code>students</code> array.</p>
+      <strong>JSON sample</strong>
+      <pre class="import-sample">[
+  {
+    "studentId": "2026011827",
+    "fullName": "Juan dela Cruz",
+    "email": "juan.delacruz@example.com",
+    "course": "BSIT",
+    "programStartDate": "2026-08-15",
+    "temporaryExpiryDate": "2027-03-01"
+  }
+]</pre>
+      <p class="import-help-note">Duplicate student IDs are skipped. Imported students remain reference-only until they submit their photo and signature through the student upload portal.</p>
+    </div>
+    <button class="primary-button modal-submit" onclick="closeModal('importHelpModal')">Close</button>
+  </div>
+</div>
+
 <script>
 let students = [];
-let currentFilter = 'all';
+let currentFilter = 'PENDING_REVIEW';
 let currentSort = 'newest';
 let activeStudentId = null;
 let selectedIds = new Set();
+let studentsLoading = false;
 
 // ── Load admin info ──────────────────────────────────────────
 async function loadAdminInfo() {
@@ -256,22 +322,108 @@ const icons = {
 };
 
 // ── Load students from API ─────────────────────────────────
-async function loadStudents() {
+async function loadStudents({ silent = false } = {}) {
+  if (studentsLoading) return;
+  studentsLoading = true;
   try {
     const res = await fetch('/admin/api/students');
-    students = await res.json();
+    if (res.status === 401 || res.status === 403) {
+      window.location.href = '/admin/login';
+      return;
+    }
+    if (res.status === 304) {
+      renderCards();
+      updateCounts();
+      return;
+    }
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !Array.isArray(data)) {
+      throw new Error(data?.error || `Student request failed (${res.status})`);
+    }
+    students = data;
     renderCards();
     updateCounts();
-    // Update portal link with first student's upload token if available
-    if (students.length > 0 && students[0].uploadToken) {
-      document.getElementById('portalLink').href = `/upload/${students[0].uploadToken}`;
-    }
   } catch (err) {
-    showToast('Failed to load students', true);
+    if (!silent) showToast('Failed to load students', true);
+  } finally {
+    studentsLoading = false;
   }
 }
 
 // ── Toast ──────────────────────────────────────────────────
+async function importStudents(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+
+  const button = document.getElementById('importStudentsMenuBtn');
+  const originalButton = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = '<span class="spinner"></span> Importing...';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/admin/api/students/import', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.error || 'Student import failed.');
+
+    await loadStudents();
+    showToast(`Imported ${data.imported} student(s); skipped ${data.skipped} duplicate(s) and ${data.invalid} invalid row(s).`);
+  } catch (error) {
+    showToast(error.message || 'Student import failed.', true);
+  } finally {
+    input.value = '';
+    button.disabled = false;
+    button.innerHTML = originalButton;
+  }
+}
+
+function triggerStudentImport() {
+  closeDropdowns();
+  document.getElementById('studentImportInput').click();
+}
+
+async function refreshDashboard() {
+  closeDropdowns();
+  await loadStudents();
+  showToast('Submissions refreshed.');
+}
+
+function csvEscape(value) {
+  const text = String(value ?? '');
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function exportVisibleStudents() {
+  closeDropdowns();
+  const visible = getVisible();
+  if (visible.length === 0) {
+    showToast('There are no visible records to export.', true);
+    return;
+  }
+
+  const headers = ['studentId', 'fullName', 'email', 'course', 'programStartDate', 'temporaryExpiryDate', 'approvalStatus', 'renewalStatus'];
+  const rows = visible.map(student => headers.map(header => csvEscape(student[header])).join(','));
+  const csv = [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `student_submissions_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  showToast(`${visible.length} visible record(s) exported.`);
+}
+
+function openImportHelp() {
+  openModal('importHelpModal');
+}
+
 function showToast(msg, isError = false) {
   const toast = document.getElementById('toast');
   document.getElementById('toastMsg').textContent = msg;
@@ -284,22 +436,28 @@ function showToast(msg, isError = false) {
 // ── Filter/Search ──────────────────────────────────────────
 function setFilter(filter) {
   currentFilter = filter;
+  const navMap = {
+    all: 'navAll',
+    PENDING_REVIEW: 'navPending',
+    RENEWAL_REQUESTED: 'navRenewal',
+    APPROVED: 'navApproved',
+    SENT: 'navSent',
+  };
+  setActiveNav(navMap[filter] || 'navPending');
+  const titles = { all: 'All submissions', PENDING_REVIEW: 'Pending approvals', RENEWAL_REQUESTED: 'Renewal queue', APPROVED: 'All approved IDs', SENT: 'Email logs' };
+  document.getElementById('listTitle').textContent = titles[filter] || filter;
+  document.querySelector('.dashboard-header h1').textContent = titles[filter] || filter;
   renderCards();
+}
+
+function setActiveNav(id) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.id === id));
 }
 
 function setFilterBtn(btn, filter) {
   document.querySelectorAll('.filter').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  currentFilter = filter;
-
-  // Update nav item
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-  document.getElementById('navPending').classList.add('active');
-
-  const titles = { all: 'All submissions', PENDING_REVIEW: 'Pending Review', RENEWAL_REQUESTED: 'Renewal Requested', APPROVED: 'All approved IDs', SENT: 'Email logs' };
-  document.getElementById('listTitle').textContent = titles[filter] || filter;
-
-  renderCards();
+  setFilter(filter);
 }
 
 function toggleSort() {
@@ -317,10 +475,18 @@ function toggleSort() {
 function getVisible() {
   const query = document.getElementById('searchInput').value.toLowerCase();
   let filtered = students.filter(s => {
-    const matchFilter = currentFilter === 'all'
-      || s.approvalStatus === currentFilter
-      || s.renewalStatus === currentFilter
-      || s.emailStatus === currentFilter;
+    let matchFilter = true;
+    if (currentFilter === 'PENDING_REVIEW') {
+      matchFilter = s.approvalStatus === 'PENDING_REVIEW' && s.renewalStatus !== 'RENEWAL_REQUESTED';
+    } else if (currentFilter === 'RENEWAL_REQUESTED') {
+      matchFilter = s.renewalStatus === 'RENEWAL_REQUESTED';
+    } else if (currentFilter === 'APPROVED') {
+      matchFilter = s.approvalStatus === 'APPROVED';
+    } else if (currentFilter === 'SENT') {
+      matchFilter = s.emailStatus === 'SENT' || s.emailStatus === 'FAILED';
+    } else if (currentFilter === 'all') {
+      matchFilter = Boolean(s.photoUrl && s.signatureUrl);
+    }
     const matchQuery = !query || `${s.fullName} ${s.studentId}`.toLowerCase().includes(query);
     return matchFilter && matchQuery;
   });
@@ -387,26 +553,28 @@ function renderCards() {
   empty.classList.add('hidden');
 
   grid.innerHTML = visible.map(s => {
-    const notApproved = s.approvalStatus !== 'APPROVED';
+    const isReviewable = s.approvalStatus === 'PENDING_REVIEW' && s.renewalStatus !== 'RENEWAL_REQUESTED';
     const isRenewal = s.renewalStatus === 'RENEWAL_REQUESTED';
+    const isApproved = s.approvalStatus === 'APPROVED';
+    const hasSubmittedAssets = Boolean(s.photoUrl && s.signatureUrl);
     const displayEmail = s.overrideEmail || s.email;
     const isSelected = selectedIds.has(s.studentId);
 
     return `
     <article class="review-card" data-id="${s.studentId}">
       <div class="card-top">
-        ${notApproved ? `<input type="checkbox" class="bulk-cb" data-id="${s.studentId}" onchange="toggleSelect('${s.studentId}', this.checked)" ${isSelected ? 'checked' : ''} title="Select for bulk approve">` : '<span style="width:18px"></span>'}
+        ${isReviewable ? `<input type="checkbox" class="bulk-cb" data-id="${s.studentId}" onchange="toggleSelect('${s.studentId}', this.checked)" ${isSelected ? 'checked' : ''} title="Select for bulk approve">` : '<span style="width:18px"></span>'}
         ${statusBadge(s)}
         <div class="more-wrap" style="position:relative;margin-left:auto">
           <button class="more-button" aria-label="More options for ${s.fullName}" onclick="toggleDropdown('dd-${s.studentId}', event)">
             <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
           </button>
           <div class="dropdown hidden" id="dd-${s.studentId}">
-            <button onclick="window.open('/id-card/${s.studentId}','_blank');closeDropdowns()">👁 View ID Preview</button>
-            ${notApproved ? `<button onclick="approveStudent('${s.studentId}', this);closeDropdowns()">Approve</button>` : ''}
-            ${notApproved ? `<button onclick="openRejectModal('${s.studentId}');closeDropdowns()">Reject</button>` : ''}
-            <button onclick="downloadDocument('${s.studentId}', this);closeDropdowns()">📄 Download PDF</button>
-            <button onclick="sendEmail('${s.studentId}');closeDropdowns()">✉ Send Email</button>
+            ${hasSubmittedAssets ? `<button onclick="window.open('/id-card/${s.studentId}','_blank');closeDropdowns()">👁 View ID Preview</button>` : ''}
+            ${isReviewable ? `<button onclick="approveStudent('${s.studentId}', this);closeDropdowns()">Approve</button>` : ''}
+            ${isReviewable ? `<button onclick="openRejectModal('${s.studentId}');closeDropdowns()">Reject</button>` : ''}
+            ${hasSubmittedAssets ? `<button onclick="downloadDocument('${s.studentId}', this);closeDropdowns()">📄 Download PDF</button>` : ''}
+            ${isApproved ? `<button onclick="sendEmail('${s.studentId}');closeDropdowns()">✉ Send Email</button>` : ''}
           </div>
         </div>
       </div>
@@ -437,10 +605,10 @@ function renderCards() {
       </div>
 
       <div class="card-actions">
-        ${notApproved ? `<button class="approve-button" onclick="approveStudent('${s.studentId}', this)">${icons.check} Approve</button>` : ''}
+        ${isReviewable ? `<button class="approve-button" onclick="approveStudent('${s.studentId}', this)">${icons.check} Approve</button>` : ''}
         ${isRenewal ? `<button class="renew-button" onclick="openRenewalModal('${s.studentId}')">${icons.refresh} Extend</button>` : ''}
-        ${notApproved ? `<button class="reject-button" onclick="openRejectModal('${s.studentId}')">${icons.x} Reject</button>` : ''}
-        <button class="download-button" onclick="downloadDocument('${s.studentId}', this)" title="Download PDF">${icons.download}</button>
+        ${isReviewable ? `<button class="reject-button" onclick="openRejectModal('${s.studentId}')">${icons.x} Reject</button>` : ''}
+        ${hasSubmittedAssets ? `<button class="download-button" onclick="downloadDocument('${s.studentId}', this)" title="Download PDF">${icons.download}</button>` : ''}
       </div>
     </article>`;
   }).join('');
@@ -450,16 +618,15 @@ function renderCards() {
 
 // ── Update counts ──────────────────────────────────────────
 function updateCounts() {
-  const pending = students.filter(s => s.approvalStatus === 'PENDING_REVIEW').length;
+  const pending = students.filter(s => s.approvalStatus === 'PENDING_REVIEW' && s.renewalStatus !== 'RENEWAL_REQUESTED').length;
   const renewal = students.filter(s => s.renewalStatus === 'RENEWAL_REQUESTED').length;
   const approved = students.filter(s => s.approvalStatus === 'APPROVED').length;
   const ready = students.filter(s => s.approvalStatus === 'APPROVED' && s.emailStatus === 'READY_TO_SEND').length;
 
-  document.getElementById('pendingCount').textContent = pending;
-  document.getElementById('countPending').textContent = pending;
-  document.getElementById('countRenewal').textContent = renewal;
-  document.getElementById('countApproved').textContent = approved;
-  document.getElementById('approvedCount').textContent = ready;
+  const pendingCount = document.getElementById('pendingCount');
+  const approvedCount = document.getElementById('approvedCount');
+  if (pendingCount) pendingCount.textContent = pending;
+  if (approvedCount) approvedCount.textContent = ready;
 }
 
 // ── Actions ────────────────────────────────────────────────
@@ -468,17 +635,18 @@ async function approveStudent(studentId, btn) {
   btn.innerHTML = '<span class="spinner"></span>';
   try {
     const res = await fetch(`/admin/api/students/${studentId}/approve`, { method: 'POST' });
-    const data = await res.json();
-    if (data.success) {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Approve request failed.');
+    if (data.success && data.student) {
       const idx = students.findIndex(s => s.studentId === studentId);
       if (idx !== -1) students[idx] = data.student;
       renderCards();
       showToast('ID approved and queued for email.');
     } else {
-      showToast('Failed to approve ID', true);
+      showToast(data.error || 'Failed to approve ID', true);
     }
   } catch (err) {
-    showToast('Failed to approve ID', true);
+    showToast(err.message || 'Failed to approve ID', true);
   } finally {
     btn.disabled = false;
     btn.innerHTML = `${icons.check} Approve`;
@@ -529,14 +697,17 @@ async function bulkApprove() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ studentIds: Array.from(selectedIds) })
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Bulk approval failed.');
     if (data.success) {
       selectedIds.clear();
       showToast('Bulk approve successful!');
-      loadStudents();
+      await loadStudents();
+    } else {
+      showToast(data.error || 'Bulk approval failed.', true);
     }
   } catch (err) {
-    showToast('Bulk approve failed', true);
+    showToast(err.message || 'Bulk approve failed', true);
   } finally {
     btn.disabled = false;
     updateBulkApproveBtn();
@@ -593,15 +764,18 @@ async function sendApprovedEmails() {
   btn.innerHTML = '<span class="spinner"></span> Sending...';
   try {
     const res = await fetch('/admin/api/email/send-approved', { method: 'POST' });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.error || 'Email dispatch failed.');
     if (data.success) {
       const { success } = data.results || {};
-      if (success > 0) showToast(`${success} email(s) sent successfully.`);
-      else showToast(data.message || 'No emails to send.');
+      const { failed = 0 } = data.results || {};
+      if (success > 0 && failed > 0) showToast(`${success} email(s) sent; ${failed} failed.`, true);
+      else if (success > 0) showToast(`${success} email(s) sent successfully.`);
+      else showToast(data.message || 'No approved IDs are ready to email.');
     }
     await loadStudents();
   } catch (err) {
-    showToast('Email dispatch failed.', true);
+    showToast(err.message || 'Email dispatch failed.', true);
   } finally {
     btn.disabled = false;
     btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> Send approved IDs <span class="button-count" id="approvedCount">0</span>`;
@@ -629,7 +803,8 @@ async function saveEmail() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ studentId: activeStudentId, overrideEmail: email }),
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Recipient email update failed.');
     if (data.success) {
       const idx = students.findIndex(s => s.studentId === activeStudentId);
       if (idx !== -1) students[idx].overrideEmail = email;
@@ -638,7 +813,7 @@ async function saveEmail() {
       showToast('Recipient email updated.');
     }
   } catch (err) {
-    showToast('Failed to update email.', true);
+    showToast(err.message || 'Failed to update email.', true);
   }
 }
 
@@ -651,6 +826,7 @@ function openRenewalModal(studentId) {
 }
 
 async function saveRenewal() {
+  if (!activeStudentId) return;
   const days = document.getElementById('renewalDays').value;
   try {
     const res = await fetch('/admin/api/renewals/process', {
@@ -658,14 +834,17 @@ async function saveRenewal() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ studentIds: [activeStudentId], extensionDays: days }),
     });
-    const data = await res.json();
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.error || 'Renewal failed.');
+    const failed = (data.results || []).filter(result => !result.success);
+    if (failed.length > 0) throw new Error(failed.map(result => `${result.studentId}: ${result.error}`).join(', '));
     if (data.success) {
       closeModal('renewalModal');
       await loadStudents();
       showToast(`ID renewed — extended by ${days} days.`);
     }
   } catch (err) {
-    showToast('Renewal failed.', true);
+    showToast(err.message || 'Renewal failed.', true);
   }
 }
 
@@ -686,8 +865,9 @@ async function saveReject() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ reason }),
     });
-    const data = await res.json();
-    if (data.success) {
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Rejection failed.');
+    if (data.success && data.student) {
       const idx = students.findIndex(s => s.studentId === activeStudentId);
       if (idx !== -1) students[idx] = data.student;
       closeModal('rejectModal');
@@ -695,7 +875,7 @@ async function saveReject() {
       showToast('Submission rejected.');
     }
   } catch (err) {
-    showToast('Rejection failed.', true);
+    showToast(err.message || 'Rejection failed.', true);
   }
 }
 
@@ -720,7 +900,120 @@ document.querySelectorAll('.modal-backdrop').forEach(el => {
 
 // ── Global Settings ────────────────────────────────────────
 let currentSettings = {};
+let presidentSigMode = 'draw';
+let presidentSigDataUrl = null;
+let presidentSigCanvas;
+let presidentSigCtx;
+let presidentSigDrawing = false;
+
+function initPresidentSignatureEditor() {
+  presidentSigCanvas = document.getElementById('presidentSignatureCanvas');
+  presidentSigCtx = presidentSigCanvas.getContext('2d', { willReadFrequently: true });
+  resetPresidentSignatureCanvas();
+
+  const point = event => {
+    const rect = presidentSigCanvas.getBoundingClientRect();
+    return {
+      x: (event.clientX - rect.left) * presidentSigCanvas.width / rect.width,
+      y: (event.clientY - rect.top) * presidentSigCanvas.height / rect.height,
+    };
+  };
+  presidentSigCanvas.addEventListener('pointerdown', event => {
+    if (presidentSigMode !== 'draw') return;
+    presidentSigDrawing = true;
+    const p = point(event);
+    presidentSigCtx.beginPath();
+    presidentSigCtx.moveTo(p.x, p.y);
+    presidentSigCanvas.setPointerCapture(event.pointerId);
+  });
+  presidentSigCanvas.addEventListener('pointermove', event => {
+    if (!presidentSigDrawing) return;
+    const p = point(event);
+    presidentSigCtx.lineTo(p.x, p.y);
+    presidentSigCtx.stroke();
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => {
+    presidentSigCanvas.addEventListener(type, () => { presidentSigDrawing = false; });
+  });
+}
+
+function resetPresidentSignatureCanvas() {
+  if (!presidentSigCtx) return;
+  presidentSigCtx.clearRect(0, 0, presidentSigCanvas.width, presidentSigCanvas.height);
+  presidentSigCtx.fillStyle = '#fff';
+  presidentSigCtx.fillRect(0, 0, presidentSigCanvas.width, presidentSigCanvas.height);
+  presidentSigCtx.strokeStyle = '#000';
+  presidentSigCtx.lineWidth = 3;
+  presidentSigCtx.lineCap = 'round';
+  presidentSigCtx.lineJoin = 'round';
+  presidentSigDataUrl = null;
+}
+
+function signatureDataUrlFromCanvas(canvas) {
+  const source = canvas.getContext('2d', { willReadFrequently: true });
+  const image = source.getImageData(0, 0, canvas.width, canvas.height);
+  const data = image.data;
+  let minX = canvas.width, minY = canvas.height, maxX = -1, maxY = -1;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i] > 205 && data[i + 1] > 205 && data[i + 2] > 205) data[i + 3] = 0;
+    if (data[i + 3] > 18) {
+      const px = i / 4;
+      const x = px % canvas.width;
+      const y = Math.floor(px / canvas.width);
+      minX = Math.min(minX, x); minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+    }
+  }
+  if (maxX < 0) return null;
+  const pad = 12;
+  const x = Math.max(0, minX - pad), y = Math.max(0, minY - pad);
+  const right = Math.min(canvas.width - 1, maxX + pad), bottom = Math.min(canvas.height - 1, maxY + pad);
+  const output = document.createElement('canvas');
+  output.width = right - x + 1; output.height = bottom - y + 1;
+  output.getContext('2d').putImageData(image, -x, -y);
+  return output.toDataURL('image/png');
+}
+
+function setPresidentSignatureMode(mode) {
+  presidentSigMode = mode;
+  document.getElementById('presSigDrawTab').classList.toggle('active', mode === 'draw');
+  document.getElementById('presSigUploadTab').classList.toggle('active', mode === 'upload');
+  presidentSigCanvas.classList.toggle('hidden', mode !== 'draw');
+  document.getElementById('presSigUploadPanel').classList.toggle('hidden', mode !== 'upload');
+}
+
+function triggerPresidentSigUpload() {
+  document.getElementById('presidentSigUpload').click();
+}
+
+function handlePresidentSigFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = event => {
+    const image = new Image();
+    image.onload = () => {
+      resetPresidentSignatureCanvas();
+      const scale = Math.min(presidentSigCanvas.width / image.width, presidentSigCanvas.height / image.height);
+      const width = image.width * scale, height = image.height * scale;
+      presidentSigCtx.drawImage(image, (presidentSigCanvas.width - width) / 2, (presidentSigCanvas.height - height) / 2, width, height);
+      presidentSigDataUrl = signatureDataUrlFromCanvas(presidentSigCanvas);
+      const preview = document.getElementById('presidentSigPreview');
+      preview.src = presidentSigDataUrl || '';
+      preview.classList.toggle('visible', Boolean(presidentSigDataUrl));
+    };
+    image.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearPresidentSignature() {
+  resetPresidentSignatureCanvas();
+  document.getElementById('presidentSigUpload').value = '';
+  document.getElementById('presidentSigPreview').classList.remove('visible');
+}
 async function openGlobalSettings() {
+  setActiveNav('navSettings');
   try {
     const res = await fetch('/admin/api/settings');
     if (res.ok) {
@@ -731,6 +1024,12 @@ async function openGlobalSettings() {
       document.getElementById('presidentNameInput').value = currentSettings.presidentName || '';
       document.getElementById('presidentTitleInput').value = currentSettings.presidentTitle || '';
       document.getElementById('presidentSigUpload').value = '';
+      clearPresidentSignature();
+      const preview = document.getElementById('presidentSigPreview');
+      if (currentSettings.presidentSignatureUrl) {
+        preview.src = `/${currentSettings.presidentSignatureUrl}?t=${Date.now()}`;
+        preview.classList.add('visible');
+      }
     }
   } catch (e) {}
   openModal('settingsModal');
@@ -750,20 +1049,27 @@ async function saveGlobalSettings() {
   };
 
   try {
-    let res = await fetch('/admin/api/settings', {
+    const res = await fetch('/admin/api/settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
     });
+    if (!res.ok) throw new Error('Settings update failed.');
     
-    const sigFile = document.getElementById('presidentSigUpload').files[0];
-    if (sigFile) {
+    const signatureData = presidentSigMode === 'draw'
+      ? signatureDataUrlFromCanvas(presidentSigCanvas)
+      : presidentSigDataUrl;
+    if (signatureData) {
       const fd = new FormData();
-      fd.append('presidentSignature', sigFile);
-      await fetch('/admin/api/settings/president-signature', {
+      fd.append('presidentSignatureData', signatureData);
+      const signatureRes = await fetch('/admin/api/settings/president-signature', {
         method: 'POST',
         body: fd
       });
+      if (!signatureRes.ok) {
+        const error = await signatureRes.json().catch(() => ({}));
+        throw new Error(error.error || 'Signature upload failed.');
+      }
     }
 
     showToast('Settings saved successfully.');
@@ -785,6 +1091,9 @@ function toggleSidebar() {
   document.querySelectorAll('.brand-text').forEach(el => {
     el.style.display = collapsed ? 'none' : '';
   });
+  document.querySelectorAll('.nav-item span').forEach(el => {
+    el.style.display = collapsed ? 'none' : '';
+  });
 }
 
 // ── Auth ───────────────────────────────────────────────────
@@ -804,8 +1113,13 @@ async function logout() {
 
 // ── Init ───────────────────────────────────────────────────
 loadAdminInfo();
+initPresidentSignatureEditor();
 loadStudents();
-setInterval(loadStudents, 30000); // Auto-refresh every 30s
+setInterval(() => loadStudents({ silent: true }), 10000); // Reflect student submissions and admin actions without a manual refresh.
+window.addEventListener('focus', () => loadStudents({ silent: true }));
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') loadStudents({ silent: true });
+});
 </script>
 </body>
 </html>

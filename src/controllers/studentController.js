@@ -2,6 +2,19 @@ import path from 'path';
 import fs from 'fs';
 import { getStudentByToken, updateStudent, getStudentById } from '../services/dbService.js';
 
+function removeStoredAsset(relativeUrl, directory, keepPath = '') {
+  if (!relativeUrl) return;
+
+  const root = path.resolve(directory);
+  const target = path.resolve(process.cwd(), relativeUrl);
+  const keep = keepPath ? path.resolve(keepPath) : '';
+  const isInsideDirectory = target === root || target.startsWith(`${root}${path.sep}`);
+
+  if (isInsideDirectory && target !== keep && fs.existsSync(target)) {
+    fs.unlinkSync(target);
+  }
+}
+
 export async function getPublicEntryPage(req, res) {
   res.sendFile(path.join(process.cwd(), 'src', 'views', 'studentLogin.html'));
 }
@@ -67,12 +80,18 @@ export async function handleAssetUpload(req, res) {
   }
 
   const updates = {};
+  const photoDir = path.join(process.cwd(), 'uploads', 'photos');
+  const sigDir = path.join(process.cwd(), 'uploads', 'signatures');
+  const studentPhotoPath = path.join(photoDir, `${student.studentId}.png`);
+  const studentSignaturePath = path.join(sigDir, `${student.studentId}.png`);
 
   if (req.files?.photo?.[0]) {
+    removeStoredAsset(student.photoUrl, photoDir, req.files.photo[0].path);
     updates.photoUrl = `uploads/photos/${path.basename(req.files.photo[0].path)}`;
   }
 
   if (req.files?.signature?.[0]) {
+    removeStoredAsset(student.signatureUrl, sigDir, req.files.signature[0].path);
     updates.signatureUrl = `uploads/signatures/${path.basename(req.files.signature[0].path)}`;
   }
 
@@ -80,22 +99,26 @@ export async function handleAssetUpload(req, res) {
   if (req.body.signatureData) {
     const sigData = req.body.signatureData.replace(/^data:image\/\w+;base64,/, '');
     const sigBuf = Buffer.from(sigData, 'base64');
-    const sigDir = path.join(process.cwd(), 'uploads', 'signatures');
     if (!fs.existsSync(sigDir)) fs.mkdirSync(sigDir, { recursive: true });
-    const sigPath = path.join(sigDir, `${token}.png`);
-    fs.writeFileSync(sigPath, sigBuf);
-    updates.signatureUrl = `uploads/signatures/${token}.png`;
+    removeStoredAsset(student.signatureUrl, sigDir, studentSignaturePath);
+    if (req.files?.signature?.[0]) {
+      removeStoredAsset(`uploads/signatures/${path.basename(req.files.signature[0].path)}`, sigDir, studentSignaturePath);
+    }
+    fs.writeFileSync(studentSignaturePath, sigBuf);
+    updates.signatureUrl = `uploads/signatures/${student.studentId}.png`;
   }
 
   // Handle base64 photo from camera
   if (req.body.photoData) {
     const photoData = req.body.photoData.replace(/^data:image\/\w+;base64,/, '');
     const photoBuf = Buffer.from(photoData, 'base64');
-    const photoDir = path.join(process.cwd(), 'uploads', 'photos');
     if (!fs.existsSync(photoDir)) fs.mkdirSync(photoDir, { recursive: true });
-    const photoPath = path.join(photoDir, `${token}.png`);
-    fs.writeFileSync(photoPath, photoBuf);
-    updates.photoUrl = `uploads/photos/${token}.png`;
+    removeStoredAsset(student.photoUrl, photoDir, studentPhotoPath);
+    if (req.files?.photo?.[0]) {
+      removeStoredAsset(`uploads/photos/${path.basename(req.files.photo[0].path)}`, photoDir, studentPhotoPath);
+    }
+    fs.writeFileSync(studentPhotoPath, photoBuf);
+    updates.photoUrl = `uploads/photos/${student.studentId}.png`;
   }
 
   if (Object.keys(updates).length === 0) {
@@ -103,6 +126,7 @@ export async function handleAssetUpload(req, res) {
   }
 
   updates.approvalStatus = 'PENDING_REVIEW';
+  updates.rejectionReason = '';
   const updated = updateStudent(student.studentId, updates);
 
   res.json({

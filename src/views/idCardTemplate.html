@@ -35,6 +35,8 @@
       width: 8.5in;
       height: 11in;
       background: #fff;
+      /* Certificate copy uses Aptos; the embedded ID card keeps its own font rules below. */
+      font-family: 'Aptos', 'Aptos (Body)', Calibri, 'Segoe UI', Arial, sans-serif;
       padding: 0.42in 0.6in 0.3in;
       box-shadow: 0 4px 32px rgba(0,0,0,.25);
       position: relative;
@@ -287,10 +289,10 @@
     /* Student signature sits above its line */
     .id-back-sig-img {
       position: absolute;
-      bottom: 100px;
-      left: 12px;
-      width: 248px;
-      height: 52px;
+      bottom: 85px;
+      left: 25px;
+      width: 220px;
+      height: 70px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -300,10 +302,10 @@
     /* College President signature */
     .id-back-president-sig {
       position: absolute;
-      bottom: 32px;
-      left: 12px;
-      width: 248px;
-      height: 46px;
+      bottom: 30px;
+      left: 25px;
+      width: 220px;
+      height: 70px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -595,6 +597,38 @@ function closeSignerModal() {
   document.getElementById('signerModal').classList.remove('open');
 }
 
+function transparentSignatureDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = event => {
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = 620;
+        canvas.height = 190;
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        const scale = Math.min(canvas.width / image.width, canvas.height / image.height);
+        const width = image.width * scale;
+        const height = image.height * scale;
+        ctx.drawImage(image, (canvas.width - width) / 2, (canvas.height - height) / 2, width, height);
+
+        const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        for (let i = 0; i < pixels.data.length; i += 4) {
+          if (pixels.data[i] > 205 && pixels.data[i + 1] > 205 && pixels.data[i + 2] > 205) pixels.data[i + 3] = 0;
+        }
+        ctx.putImageData(pixels, 0, 0);
+        resolve(canvas.toDataURL('image/png'));
+      };
+      image.onerror = reject;
+      image.src = event.target.result;
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 async function saveSigner() {
   const btn = document.querySelector('.btn-save');
   btn.disabled = true;
@@ -610,25 +644,28 @@ async function saveSigner() {
 
   try {
     // 1. Update text settings
-    let res = await fetch(`${base}/admin/api/settings`, {
+    const res = await fetch(`${base}/admin/api/settings`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
     });
-    let data = await res.json();
-    if (data.success) currentSettings = data.settings;
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Settings update failed.');
+    currentSettings = data.settings || currentSettings;
 
     // 2. Upload president signature if provided
     const sigFile = document.getElementById('presidentSigUpload').files[0];
     if (sigFile) {
+      const signatureData = await transparentSignatureDataUrl(sigFile);
       const fd = new FormData();
-      fd.append('presidentSignature', sigFile);
+      fd.append('presidentSignatureData', signatureData);
       const sigRes = await fetch(`${base}/admin/api/settings/president-signature`, {
         method: 'POST',
         body: fd
       });
       const sigData = await sigRes.json();
-      if (sigData.success) currentSettings = sigData.settings;
+      if (!sigRes.ok) throw new Error(sigData.error || 'Signature upload failed.');
+      currentSettings = sigData.settings || currentSettings;
     }
 
     applySettings(currentSettings);

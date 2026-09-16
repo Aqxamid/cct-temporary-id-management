@@ -93,21 +93,46 @@ export class SignatureEngine {
     const imgData = this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height);
     const data = imgData.data;
 
+    let minX = this.canvas.width;
+    let minY = this.canvas.height;
+    let maxX = -1;
+    let maxY = -1;
+
     for (let i = 0; i < data.length; i += 4) {
       const r = data[i];
       const g = data[i + 1];
       const b = data[i + 2];
       // Threshold: pixels close to white become transparent
-      if (r > 210 && g > 210 && b > 210) {
+      if (r > 205 && g > 205 && b > 205) {
         data[i + 3] = 0;
+      }
+
+      if (data[i + 3] > 18) {
+        const pixel = i / 4;
+        const x = pixel % this.canvas.width;
+        const y = Math.floor(pixel / this.canvas.width);
+        minX = Math.min(minX, x);
+        minY = Math.min(minY, y);
+        maxX = Math.max(maxX, x);
+        maxY = Math.max(maxY, y);
       }
     }
 
+    if (maxX < 0) return null;
+
+    const padding = 12;
+    const cropX = Math.max(0, minX - padding);
+    const cropY = Math.max(0, minY - padding);
+    const cropRight = Math.min(this.canvas.width - 1, maxX + padding);
+    const cropBottom = Math.min(this.canvas.height - 1, maxY + padding);
+    const cropWidth = cropRight - cropX + 1;
+    const cropHeight = cropBottom - cropY + 1;
+
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = this.canvas.width;
-    tempCanvas.height = this.canvas.height;
+    tempCanvas.width = cropWidth;
+    tempCanvas.height = cropHeight;
     const tempCtx = tempCanvas.getContext('2d');
-    tempCtx.putImageData(imgData, 0, 0);
+    tempCtx.putImageData(imgData, -cropX, -cropY);
 
     return tempCanvas.toDataURL('image/png');
   }

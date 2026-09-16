@@ -1,6 +1,7 @@
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
+import { getStudentByToken } from '../services/dbService.js';
 
 const photosDir = path.join(process.cwd(), 'uploads', 'photos');
 const signaturesDir = path.join(process.cwd(), 'uploads', 'signatures');
@@ -21,8 +22,11 @@ const storage = multer.diskStorage({
   },
   filename(req, file, cb) {
     const token = req.params.token || 'unknown';
-    const ext = path.extname(file.originalname) || '.png';
-    cb(null, `${token}${ext}`);
+    const student = getStudentByToken(token);
+    const studentId = student?.studentId || token;
+    const safeStudentId = String(studentId).replace(/[^a-zA-Z0-9_-]/g, '_');
+    const ext = (path.extname(file.originalname) || '.png').toLowerCase();
+    cb(null, `${safeStudentId}${ext}`);
   },
 });
 
@@ -71,3 +75,28 @@ export const presidentSignatureUpload = multer({
   fileFilter,
   limits: { fileSize: 5 * 1024 * 1024 }
 }).single('presidentSignature');
+
+// Student bulk-import files are kept in memory because they are parsed
+// immediately and should never be stored in the uploads directory.
+export const studentImportUpload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: (req, file, cb) => {
+    const extension = path.extname(file.originalname || '').toLowerCase();
+    const allowedExtensions = ['.csv', '.json'];
+    const allowedMimeTypes = [
+      'text/csv',
+      'application/csv',
+      'application/json',
+      'text/json',
+      'text/plain',
+      'application/vnd.ms-excel',
+    ];
+
+    if (allowedExtensions.includes(extension) || allowedMimeTypes.includes(file.mimetype)) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV and JSON files are allowed.'), false);
+    }
+  },
+  limits: { fileSize: 10 * 1024 * 1024 },
+});

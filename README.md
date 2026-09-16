@@ -15,7 +15,8 @@ A web-based intranet system for issuing and managing **temporary student IDs**. 
 | **Admin Dashboard** | Manage students, review submissions, approve/reject uploads, configure global signatories |
 | **Student Portal** | Secure per-student upload form for 2×2 photo and digital signature |
 | **PDF ID Generation** | High-quality temporary ID cards generated via Puppeteer |
-| **Email Automation** | Sends approval notifications and the PDF ID directly to the student's email |
+| **Email Automation** | Sends approval notifications with the MIS banner and downloadable PDF ID attachment |
+| **Bulk Student Import** | Import CSV or JSON reference data; duplicate student IDs are skipped safely |
 | **Auth & Rate Limiting** | JWT-based admin auth, bcrypt passwords, express-rate-limit |
 | **QR Renewal** | QR-code based renewal flow for student ID requests |
 
@@ -87,11 +88,21 @@ cp .env.example .env
 |---|---|
 | `PORT` | Port to run the server on (default: `3000`) |
 | `PUBLIC_BASE_URL` | Base URL used in student upload links (e.g. `http://localhost:3000`) |
-| `SESSION_SECRET` | Long random string for JWT signing |
+| `EMAIL_BANNER_URL` | Optional public URL for `mis_email_banner.png` in email bodies; the banner is also attached to every email |
+| `JWT_SECRET` | Long random string for JWT signing |
 | `SMTP_HOST` | SMTP server host (e.g. `smtp.gmail.com`) |
 | `SMTP_PORT` | SMTP port (typically `587`) |
 | `SMTP_USER` | Your sending email address |
 | `SMTP_PASS` | Gmail App Password (not your login password) |
+| `EMAIL_PROVIDER` | `smtp` for Gmail or `brevo` for the Brevo API |
+| `BREVO_API_KEY` | Brevo API key, required when using `brevo` |
+| `BREVO_API_URL` | Brevo transactional endpoint (normally the default shown in `.env.example`) |
+| `BREVO_SENDER_EMAIL` | Verified Brevo sender address |
+| `BREVO_SENDER_NAME` | Display name used by Brevo |
+| `BREVO_REPLY_TO_EMAIL` | Optional reply-to address |
+| `BREVO_SANDBOX` | Set to `true` to test through Brevo without delivering the message |
+
+The `.env` file contains secrets and is intentionally ignored by Git. Use `.env.example` as the safe configuration template. Runtime databases, uploaded student assets, generated QR codes, generated PDFs, and the president's uploaded signature are also ignored because they may contain private or generated data. The source `public/images/mis_email_banner.png` is tracked because it is a reusable application asset.
 
 ### 3. Start the server
 
@@ -136,6 +147,48 @@ curl -X POST http://localhost:3000/admin/api/students \
 ### Manual entry (advanced)
 
 You can edit `data/students.json` directly **while the server is stopped**, but you must provide the `uploadToken` manually and ensure valid JSON (no BOM, no trailing commas).
+
+### Bulk importing students
+
+Administrators can import student reference data from the **Import students** button in the dashboard. Both CSV and JSON files are supported.
+
+CSV headers are case-insensitive. The required columns are:
+
+```text
+studentId,fullName,email
+```
+
+Optional columns include `dob`, `course`, `programStartDate`, `temporaryExpiryDate`, `enrollmentStatus`, `guardianName`, `address`, and `phone`. JSON may be either an array of student objects or an object containing a `students` array.
+
+Example CSV:
+
+```csv
+studentId,fullName,email,course,programStartDate,temporaryExpiryDate
+2026011827,Juan dela Cruz,juan.delacruz@example.com,BSIT,2026-08-15,2027-03-01
+```
+
+Example JSON:
+
+```json
+[
+  {
+    "studentId": "2026011827",
+    "fullName": "Juan dela Cruz",
+    "email": "juan.delacruz@example.com",
+    "course": "BSIT",
+    "programStartDate": "2026-08-15",
+    "temporaryExpiryDate": "2027-03-01"
+  }
+]
+```
+
+The API endpoint is `POST /admin/api/students/import` with the file sent in a multipart field named `file`. Existing student IDs and duplicate IDs within the same file are skipped; existing photos, signatures, QR codes, and PDFs are never overwritten. Imported records are reference-only (`PENDING_UPLOAD`) until the student submits both assets through `/upload/:token`. They will then appear as a pending temporary-ID request.
+
+### Email delivery
+
+Approved IDs are sent using the provider selected by `EMAIL_PROVIDER` in `.env`. Use `smtp` for Gmail or `brevo` for the Brevo transactional email API. The email template displays `mis_email_banner.png` in the email body when `EMAIL_BANNER_URL` is available, and sends the banner as an image attachment as well as the current generated PDF (`Temporary_ID_<studentId>.pdf`). A PDF must exist before an email can be sent.
+
+For Brevo, create an API key and verify the sender address in Brevo, then set `EMAIL_PROVIDER=brevo`, `BREVO_API_KEY`, and `BREVO_SENDER_EMAIL`. Brevo’s transactional endpoint is `https://api.brevo.com/v3/smtp/email`; both the PDF and MIS banner are sent as attachments. Optionally set `EMAIL_BANNER_URL` to a public image URL to display the banner directly in the email body. Set `BREVO_SANDBOX=true` while testing if you want Brevo to accept the request without delivering the message.
 
 ---
 
