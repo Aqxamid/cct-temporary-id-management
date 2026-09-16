@@ -345,8 +345,8 @@ function statusBadge(s) {
 
 // ── QR preview ─────────────────────────────────────────────
 function qrPreviewHtml(s) {
-  if (s.qrCodeUrl) {
-    return `<img src="/${s.qrCodeUrl}" class="qr-img" alt="QR Code">`;
+  if (s.renewalQrUrl) {
+    return `<img src="/${s.renewalQrUrl}" class="qr-img" alt="QR Code">`;
   }
   // Fake QR grid
   const cells = Array.from({length:49}, (_,i) =>

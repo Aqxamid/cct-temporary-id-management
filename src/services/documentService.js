@@ -9,14 +9,25 @@ const docsDir = path.join(process.cwd(), 'uploads', 'documents');
 if (!fs.existsSync(docsDir)) fs.mkdirSync(docsDir, { recursive: true });
 
 export async function populateStudentDocument(studentData, publicBaseUrl) {
-  // 1. Generate QR Code if not already present
-  if (!studentData.qrCodeUrl) {
-    const qrRelativePath = await generateStudentQR(
+  // 1. Generate QRs if not already present
+  if (!studentData.qrCodeUrl || !studentData.renewalQrUrl) {
+    const { generateRenewalQR } = await import('./qrService.js');
+    const qrRelativePath = await generateStudentQR(studentData.studentId);
+    const renewalQrPath = await generateRenewalQR(
       studentData.studentId,
       studentData.renewalToken,
       publicBaseUrl
     );
+    
     studentData.qrCodeUrl = qrRelativePath;
+    studentData.renewalQrUrl = renewalQrPath;
+    
+    // Save both to DB
+    const db = await import('./dbService.js');
+    db.updateStudent(studentData.studentId, { 
+      qrCodeUrl: qrRelativePath,
+      renewalQrUrl: renewalQrPath
+    });
   }
 
   // 2. Mint a short-lived admin token so Puppeteer can hit the protected API
@@ -56,14 +67,13 @@ export async function populateStudentDocument(studentData, publicBaseUrl) {
       { timeout: 10000 }
     );
 
-    // 4. Export as PDF (CR80 card: 3.375in × 2.125in + some padding for wrapper)
     const outputPath = path.join(docsDir, `ID_${studentData.studentId}.pdf`);
     await page.pdf({
       path: outputPath,
       printBackground: true,
       width: '8.5in',
       height: '11in',
-      margin: { top: '0.5in', bottom: '0.5in', left: '0.75in', right: '0.75in' },
+      margin: { top: '0', bottom: '0', left: '0', right: '0' },
     });
 
     return outputPath;

@@ -33,11 +33,12 @@
     /* ── PAGE ── */
     .page {
       width: 8.5in;
-      min-height: 11in;
+      height: 11in;
       background: #fff;
-      padding: 0.5in 0.6in 0.5in;
+      padding: 0.42in 0.6in 0.3in;
       box-shadow: 0 4px 32px rgba(0,0,0,.25);
       position: relative;
+      overflow: hidden;
     }
 
     /* Corner marks */
@@ -132,8 +133,8 @@
     /* ── BOTTOM 3-COLUMN ── */
     .cert-bottom {
       display: grid;
-      grid-template-columns: 155px 1fr 185px;
-      gap: 14px;
+      grid-template-columns: 150px 1fr 272px;
+      gap: 10px;
       align-items: start;
     }
 
@@ -173,8 +174,8 @@
 
     /* ── CENTER: ID Card Front (Image Template) ── */
     .id-card-front {
-      width: 280px;
-      height: 480px;
+      width: 272px;
+      height: 432px;
       margin: 0 auto;
       background: url('/public/images/id_template_front.jpeg') no-repeat center center;
       background-size: 100% 100%;
@@ -184,74 +185,82 @@
       position: relative;
     }
     
+    /* Photo box: fits the large white square on the left of the front template */
     .id-front-photo {
       position: absolute;
-      top: 135px;
+      top: 114.5px;
       left: 20px;
-      width: 98px;
-      height: 125px;
-      background: #f0f0f0;
-      border: 1px solid #999;
+      width: 132px;
+      height: 132px;
+      overflow: hidden;
     }
     .id-front-photo img { width: 100%; height: 100%; object-fit: cover; }
     
+    /* Name sits below the photo area, above the dark footer bar */
     .id-front-name {
       position: absolute;
-      top: 325px;
-      left: 10px;
-      right: 10px;
+      top: 280px;
+      left: 8px;
+      right: 8px;
       text-align: center;
-      font-size: 13pt;
+      font-size: 16pt;
       font-weight: 900;
       text-transform: uppercase;
       color: #000;
-      line-height: 1.1;
+      line-height: 1.15;
     }
     
     .id-front-course {
       position: absolute;
-      top: 365px;
-      left: 10px;
-      right: 10px;
+      top: 305px;
+      left: 8px;
+      right: 8px;
       text-align: center;
-      font-size: 11pt;
-      font-weight: 700;
+      font-size: 14pt;
+      font-weight: 800;
       color: #222;
     }
     
     .id-front-expiry {
       position: absolute;
-      top: 390px;
-      left: 10px;
-      right: 10px;
+      top: 335px;
+      left: 8px;
+      right: 8px;
       text-align: center;
-      font-size: 8pt;
-      color: #000;
+      font-size: 10pt;
+      color: #333;
     }
     
+    /* Student number: inside the white box in the dark STUDENT NUMBER footer */
     .id-front-number {
       position: absolute;
-      bottom: 15px;
-      left: 15px;
+      bottom: 8px;
+      left: 60px;
+      right: 72px;
       font-size: 16pt;
       font-weight: 900;
       color: #fff;
+      text-align: left;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
     
+    /* QR code: inside the white square on the bottom-right of the footer */
     .id-front-qr {
       position: absolute;
-      bottom: 12px;
-      right: 12px;
-      width: 55px;
-      height: 55px;
-      background: #fff;
+      bottom: 6px;
+      right: 17px; /* 17px fixed*/
+      width: 48.5px;
+      height: 48.5px;
+      background: #fff; /* change to #000 for resizing */
     }
     .id-front-qr img { width: 100%; height: 100%; object-fit: contain; }
 
     /* ── RIGHT: ID Card Back (Image Template) ── */
     .id-card-back {
-      width: 280px;
-      height: 480px;
+      width: 272px;
+      height: 432px;
       background: url('/public/images/id_template_back.jpeg') no-repeat center center;
       background-size: 100% 100%;
       border: 1px solid #888;
@@ -260,35 +269,41 @@
       position: relative;
     }
     
-    .id-back-em-name { position: absolute; top: 52px; left: 75px; font-size: 10pt; font-weight: 700; }
-    .id-back-em-addr { position: absolute; top: 82px; left: 15px; font-size: 9pt; font-weight: 700; width: 250px; line-height: 1.1; }
-    .id-back-em-phone { position: absolute; top: 122px; left: 70px; font-size: 10pt; font-weight: 700; }
+    /* Back overlay — values positioned AFTER each label's colon in the background image */
+    /* "NAME:" bold label is ~88px wide at 272px card scale */
+    .id-back-em-name  { position: absolute; top: 48px;  left: 65px;  font-size: 10pt; font-weight: 700; right: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    /* "ADDRESS:" bold label is ~105px wide; value wraps on a new line below the label */
+    .id-back-em-addr  { position: absolute; top: 73px;  left: 90px;  font-size: 8pt; font-weight: 700; right: 6px; line-height: 1.2; }
+    /* "TEL #:" label is ~65px wide */
+    .id-back-em-phone { position: absolute; top: 102px; left: 68px;  font-size: 14pt; font-weight: 700; right: 6px; }
     
-    /* Dynamically positioned semester years */
-    .id-back-sem-year { font-size: 9pt; font-weight: 400; position: absolute; left: 20px; }
-    .sy-1 { top: 177px; }
+    /* Semester year cells — aligned to the School Year column rows in the table */
+    .id-back-sem-year { font-size: 7.9pt; font-weight: 700; position: absolute; left: 30px; text-align: center; width: 46px; }
+    .sy-1 { top: 179px; }
     .sy-2 { top: 200px; }
-    .sy-3 { top: 223px; }
-    .sy-4 { top: 246px; }
+    .sy-3 { top: 221px; }
+    .sy-4 { top: 242px; }
     
+    /* Student signature sits above its line */
     .id-back-sig-img {
       position: absolute;
-      bottom: 110px;
-      left: 15px;
-      width: 250px;
-      height: 60px;
+      bottom: 100px;
+      left: 12px;
+      width: 248px;
+      height: 52px;
       display: flex;
       align-items: center;
       justify-content: center;
     }
     .id-back-sig-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
 
+    /* College President signature */
     .id-back-president-sig {
       position: absolute;
-      bottom: 35px;
-      left: 15px;
-      width: 250px;
-      height: 55px;
+      bottom: 32px;
+      left: 12px;
+      width: 248px;
+      height: 46px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -296,9 +311,9 @@
     .id-back-president-sig img { max-width: 100%; max-height: 100%; object-fit: contain; }
     .id-back-president-name {
       position: absolute;
-      bottom: 16px;
-      left: 10px;
-      right: 10px;
+      bottom: 44px;
+      left: 8px;
+      right: 8px;
       text-align: center;
       font-size: 11pt;
       font-weight: 900;
@@ -536,10 +551,20 @@ async function loadCardData() {
     }
 
     if (s.photoUrl) {
-      document.getElementById('cardPhoto').src = `${base}/${s.photoUrl}`;
+      const el = document.getElementById('cardPhoto');
+      el.src = `${base}/${s.photoUrl}`;
+      el.style.display = 'block';
     }
-    if (s.signatureUrl) document.getElementById('cardSig').src = `${base}/${s.signatureUrl}`;
-    if (s.qrCodeUrl) document.getElementById('cardQr').src = `${base}/${s.qrCodeUrl}`;
+    if (s.signatureUrl) {
+      const el = document.getElementById('cardSig');
+      el.src = `${base}/${s.signatureUrl}`;
+      el.style.display = 'block';
+    }
+    if (s.qrCodeUrl) {
+      const el = document.getElementById('cardQr');
+      el.src = `${base}/${s.qrCodeUrl}`;
+      el.style.display = 'block';
+    }
   } catch (err) {
     document.getElementById('infoName').textContent = '— Student not found —';
   }

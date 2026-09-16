@@ -429,6 +429,20 @@ window.submitAssets = async function() {
 // ── Init ───────────────────────────────────────────────────
 loadStudentInfo();
 initSignature();
+
+// ── Zoom Slider ────────────────────────────────────────────
+const zoomSlider = document.getElementById('zoomSlider');
+if (zoomSlider) {
+  zoomSlider.addEventListener('input', (e) => {
+    // scale from 1.0 to 3.0 based on slider (0 to 100)
+    const scale = 1 + (e.target.value / 50);
+    const preview = document.getElementById('photoPreview');
+    if (preview) {
+      preview.style.transform = `scale(${scale})`;
+      preview.style.transformOrigin = 'center';
+    }
+  });
+}
 </script>
 </body>
 </html>
