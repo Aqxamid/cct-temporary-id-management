@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student ID Management</title>
+  <meta name="description" content="Intranet admin dashboard for reviewing, approving, and managing temporary student ID submissions.">
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <link rel="icon" href="/favicon.ico" type="image/png">
+</head>
+<body>
+
+<div class="admin-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <img src="/public/images/logo_seal.png" class="brand-mark" alt="Logo">
+      <span class="brand-text">
+        <strong>City College of Tagaytay</strong>
+        <small>Temporary ID Admin</small>
+      </span>
+    </div>
+    <button class="collapse-button" id="collapseBtn" aria-label="Collapse navigation" onclick="toggleSidebar()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <nav>
+      <p class="nav-label" id="navLabel">WORKSPACE</p>
+      <button class="nav-item active" id="navPending" onclick="setFilter('all')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+        <span>Pending approvals <b id="pendingCount">0</b></span>
+      </button>
+      <button class="nav-item" onclick="setFilter('RENEWAL_REQUESTED')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.8-4L3 10"/><path d="M3 5v5h5"/><path d="M4 13a8 8 0 0 0 14.8 4L21 14"/><path d="M21 19v-5h-5"/></svg>
+        <span>Renewal queue</span>
+      </button>
+      <button class="nav-item" onclick="setFilter('APPROVED')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+        <span>All approved IDs</span>
+      </button>
+      <button class="nav-item" onclick="setFilter('SENT')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        <span>Email logs</span>
+      </button>
+      <button class="nav-item" onclick="openGlobalSettings()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        <span>Global Settings</span>
+      </button>
+    </nav>
+    <div class="sidebar-bottom" id="sidebarBottom">
+      <div class="user-row">
+        <span class="avatar" id="adminAvatar">…</span>
+        <span>
+          <strong id="adminFullName">Loading…</strong>
+          <small id="adminRole">Administrator</small>
+        </span>
+        <button class="icon-button" onclick="logout()" title="Logout" style="margin-left:auto; padding:5px; border-radius:4px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <div>
+        <h1>Pending approvals</h1>
+        <p class="subheading">Review submitted photos and signatures before issuing temporary IDs.</p>
+      </div>
+      <div class="header-actions">
+        <a href="/upload" target="_blank" class="portal-link" id="portalLink">View student portal <span>↗</span></a>
+        <button class="primary-button" id="bulkApproveBtn" style="display:none" onclick="bulkApprove()">
+          ✅ Approve Selected (<span id="bulkCount">0</span>)
+        </button>
+        <button class="icon-button" aria-label="More options" onclick="showToast('More options coming soon.')">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Toolbar -->
+    <section class="toolbar">
+      <label class="search">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+        <input id="searchInput" type="search" placeholder="Search by name or student ID..." oninput="renderCards()">
+      </label>
+      <button class="primary-button bulk" id="sendBulkBtn" onclick="sendApprovedEmails()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        Send approved IDs <span class="button-count" id="approvedCount">0</span>
+      </button>
+    </section>
+
+    <!-- Toast -->
+    <div class="toast hidden" id="toast">
+      <span class="toast-check">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+      </span>
+      <span id="toastMsg"></span>
+    </div>
+
+    <!-- List Heading -->
+    <div class="list-heading">
+      <div>
+        <h2 id="listTitle">All submissions</h2>
+        <span id="recordCount">0 records</span>
+      </div>
+      <button class="sort-button" onclick="toggleSort()" id="sortBtn">Newest first
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 10 5 5 5-5"/></svg>
+      </button>
+    </div>
+
+    <!-- Student Cards Grid -->
+    <section class="review-grid" id="cardsGrid"></section>
+
+    <!-- Empty State -->
+    <div class="empty hidden" id="emptyState">
+      <h2>No submissions found</h2>
+      <p>Try adjusting your search or status filter.</p>
+    </div>
+  </main>
+</div>
+
+<!-- Email Override Modal -->
+<div class="modal-backdrop hidden" id="emailModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('emailModal')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <span class="modal-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+    </span>
+    <h2>Update recipient email</h2>
+    <p class="modal-copy">Use a personal address if the institutional inbox is locked.</p>
+    <label class="modal-label">
+      Recipient email
+      <input type="email" id="emailInput" placeholder="student@example.com">
+    </label>
+    <button class="primary-button modal-submit" onclick="saveEmail()">Save email</button>
+  </div>
+</div>
+
+<!-- Renewal Modal -->
+<div class="modal-backdrop hidden" id="renewalModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('renewalModal')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <span class="modal-icon amber">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.8-4L3 10"/><path d="M3 5v5h5"/><path d="M4 13a8 8 0 0 0 14.8 4L21 14"/><path d="M21 19v-5h-5"/></svg>
+    </span>
+    <h2>Extend temporary ID</h2>
+    <p class="modal-copy">Set a new expiry extension for <strong id="renewalStudentName"></strong>'s temporary ID.</p>
+    <label class="modal-label">
+      Extension period
+      <select id="renewalDays">
+        <option value="30">30 days</option>
+        <option value="60">60 days</option>
+        <option value="90">90 days</option>
+      </select>
+    </label>
+    <button class="primary-button modal-submit" onclick="saveRenewal()">Save and approve</button>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal-backdrop hidden" id="rejectModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('rejectModal')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <span class="modal-icon red-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </span>
+    <h2>Reject submission?</h2>
+    <p class="modal-copy">Let <strong id="rejectStudentName"></strong> know what needs to be updated before resubmitting.</p>
+    <label class="modal-label">
+      Reason
+      <textarea id="rejectReason" placeholder="Add a short reason..."></textarea>
+    </label>
+    <button class="reject-full" onclick="saveReject()">Reject submission</button>
+  </div>
+</div>
+
+<!-- Global Settings Modal -->
+<div class="modal-backdrop hidden" id="settingsModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('settingsModal')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <span class="modal-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </span>
+    <h2>Global Settings</h2>
+    
+    <p class="modal-copy" style="margin-bottom:8px"><strong>Authorized MIS Signer</strong></p>
+    <label class="modal-label">
+      Name
+      <input type="text" id="signerNameInput" placeholder="Joel Mari J. Alcala">
+    </label>
+    <label class="modal-label" style="margin-top:8px">
+      Role / Position
+      <input type="text" id="signerRoleInput" placeholder="MIS Officer">
+    </label>
+    <label class="modal-label" style="margin-top:8px; margin-bottom:16px">
+      Organization
+      <input type="text" id="signerOrgInput" placeholder="City College of Tagaytay">
+    </label>
+    
+    <p class="modal-copy" style="margin-bottom:8px"><strong>College President</strong></p>
+    <label class="modal-label">
+      Name
+      <input type="text" id="presidentNameInput" placeholder="Celso P. De Castro">
+    </label>
+    <label class="modal-label" style="margin-top:8px">
+      Title
+      <input type="text" id="presidentTitleInput" placeholder="College President">
+    </label>
+    <label class="modal-label" style="margin-top:8px">
+      Signature Image
+      <input type="file" id="presidentSigUpload" accept="image/*" style="padding:6px">
+    </label>
+    
+    <button class="primary-button modal-submit" id="saveSettingsBtn" onclick="saveGlobalSettings()">Save settings</button>
+  </div>
+</div>
+
+<script>
+let students = [];
+let currentFilter = 'all';
+let currentSort = 'newest';
+let activeStudentId = null;
+let selectedIds = new Set();
+
+// ── Load admin info ──────────────────────────────────────────
+async function loadAdminInfo() {
+  try {
+    const res = await fetch('/admin/api/me');
+    if (!res.ok) return;
+    const admin = await res.json();
+    const name = admin.fullName || 'MIS Administrator';
+    document.getElementById('adminFullName').textContent = name;
+    document.getElementById('adminRole').textContent = (admin.role || '').replace(/_/g, ' ');
+    const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    document.getElementById('adminAvatar').textContent = initials || 'MIS';
+  } catch (_) {}
+}
+
+// ── SVG Icons ─────────────────────────────────────────────
+const icons = {
+  check: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>',
+  x: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>',
+  refresh: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.8-4L3 10"/><path d="M3 5v5h5"/><path d="M4 13a8 8 0 0 0 14.8 4L21 14"/><path d="M21 19v-5h-5"/></svg>',
+  download: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>',
+  edit: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>',
+  mail: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+};
+
+// ── Load students from API ─────────────────────────────────
+async function loadStudents() {
+  try {
+    const res = await fetch('/admin/api/students');
+    students = await res.json();
+    renderCards();
+    updateCounts();
+    // Update portal link with first student's upload token if available
+    if (students.length > 0 && students[0].uploadToken) {
+      document.getElementById('portalLink').href = `/upload/${students[0].uploadToken}`;
+    }
+  } catch (err) {
+    showToast('Failed to load students', true);
+  }
+}
+
+// ── Toast ──────────────────────────────────────────────────
+function showToast(msg, isError = false) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.remove('hidden', 'error');
+  if (isError) toast.classList.add('error');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 3500);
+}
+
+// ── Filter/Search ──────────────────────────────────────────
+function setFilter(filter) {
+  currentFilter = filter;
+  renderCards();
+}
+
+function setFilterBtn(btn, filter) {
+  document.querySelectorAll('.filter').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentFilter = filter;
+
+  // Update nav item
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('navPending').classList.add('active');
+
+  const titles = { all: 'All submissions', PENDING_REVIEW: 'Pending Review', RENEWAL_REQUESTED: 'Renewal Requested', APPROVED: 'All approved IDs', SENT: 'Email logs' };
+  document.getElementById('listTitle').textContent = titles[filter] || filter;
+
+  renderCards();
+}
+
+function toggleSort() {
+  const btn = document.getElementById('sortBtn');
+  if (currentSort === 'newest') {
+    currentSort = 'oldest';
+    btn.innerHTML = `Oldest first <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 14 5-5 5 5"/></svg>`;
+  } else {
+    currentSort = 'newest';
+    btn.innerHTML = `Newest first <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 10 5 5 5-5"/></svg>`;
+  }
+  renderCards();
+}
+
+function getVisible() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = students.filter(s => {
+    const matchFilter = currentFilter === 'all'
+      || s.approvalStatus === currentFilter
+      || s.renewalStatus === currentFilter
+      || s.emailStatus === currentFilter;
+    const matchQuery = !query || `${s.fullName} ${s.studentId}`.toLowerCase().includes(query);
+    return matchFilter && matchQuery;
+  });
+
+  filtered.sort((a, b) => {
+    const dA = new Date(a.generatedDate || '2000-01-01').getTime();
+    const dB = new Date(b.generatedDate || '2000-01-01').getTime();
+    return currentSort === 'newest' ? dB - dA : dA - dB;
+  });
+
+  return filtered;
+}
+
+// ── Status badge HTML ──────────────────────────────────────
+function statusBadge(s) {
+  if (s.renewalStatus === 'RENEWAL_REQUESTED') return '<span class="status renewal"><i></i>Renewal Requested</span>';
+  if (s.approvalStatus === 'APPROVED') return '<span class="status approved"><i></i>Approved</span>';
+  if (s.approvalStatus === 'REJECTED') return '<span class="status rejected"><i></i>Rejected</span>';
+  if (s.approvalStatus === 'PENDING_UPLOAD') return '<span class="status pending-upload"><i></i>Pending Upload</span>';
+  return '<span class="status pending"><i></i>Pending Review</span>';
+}
+
+// ── QR preview ─────────────────────────────────────────────
+function qrPreviewHtml(s) {
+  if (s.qrCodeUrl) {
+    return `<img src="/${s.qrCodeUrl}" class="qr-img" alt="QR Code">`;
+  }
+  // Fake QR grid
+  const cells = Array.from({length:49}, (_,i) =>
+    `<i class="${(i<7||i%7===0||i>41||(i*3)%5===0)?'on':''}"></i>`
+  ).join('');
+  return `<div class="qr">${cells}</div>`;
+}
+
+// ── Asset preview ──────────────────────────────────────────
+function assetHtml(s, isSignature) {
+  const cls = `fake-asset ${isSignature ? 'signature-asset' : ''} tone-${s.tone}`;
+  const url = isSignature ? s.signatureUrl : s.photoUrl;
+
+  if (url) {
+    return `<div class="${cls}"><img src="/${url}" alt="${isSignature ? 'Signature' : 'Photo'}"></div>`;
+  }
+  if (isSignature) {
+    return `<div class="${cls}"><span class="signature-mark">${s.fullName.split(' ')[0]}</span></div>`;
+  }
+  return `<div class="${cls}">
+    <span class="photo-head">${s.initials}</span>
+    <span class="photo-body"></span>
+  </div>`;
+}
+
+// ── Render student cards ───────────────────────────────────
+function renderCards() {
+  const visible = getVisible();
+  const grid = document.getElementById('cardsGrid');
+  const empty = document.getElementById('emptyState');
+  document.getElementById('recordCount').textContent = `${visible.length} record${visible.length !== 1 ? 's' : ''}`;
+
+  if (visible.length === 0) {
+    grid.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  grid.innerHTML = visible.map(s => {
+    const notApproved = s.approvalStatus !== 'APPROVED';
+    const isRenewal = s.renewalStatus === 'RENEWAL_REQUESTED';
+    const displayEmail = s.overrideEmail || s.email;
+    const isSelected = selectedIds.has(s.studentId);
+
+    return `
+    <article class="review-card" data-id="${s.studentId}">
+      <div class="card-top">
+        ${notApproved ? `<input type="checkbox" class="bulk-cb" data-id="${s.studentId}" onchange="toggleSelect('${s.studentId}', this.checked)" ${isSelected ? 'checked' : ''} title="Select for bulk approve">` : '<span style="width:18px"></span>'}
+        ${statusBadge(s)}
+        <div class="more-wrap" style="position:relative;margin-left:auto">
+          <button class="more-button" aria-label="More options for ${s.fullName}" onclick="toggleDropdown('dd-${s.studentId}', event)">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+          </button>
+          <div class="dropdown hidden" id="dd-${s.studentId}">
+            <button onclick="window.open('/id-card/${s.studentId}','_blank');closeDropdowns()">👁 View ID Preview</button>
+            ${notApproved ? `<button onclick="approveStudent('${s.studentId}', this);closeDropdowns()">Approve</button>` : ''}
+            ${notApproved ? `<button onclick="openRejectModal('${s.studentId}');closeDropdowns()">Reject</button>` : ''}
+            <button onclick="downloadDocument('${s.studentId}', this);closeDropdowns()">📄 Download PDF</button>
+            <button onclick="sendEmail('${s.studentId}');closeDropdowns()">✉ Send Email</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="assets">
+        ${assetHtml(s, false)}
+        ${assetHtml(s, true)}
+        <div class="asset-labels"><span>PHOTO</span><span>SIGNATURE</span></div>
+        <div class="qr-wrap">${qrPreviewHtml(s)}<small>RENEWAL QR</small></div>
+      </div>
+
+      <div class="student-info">
+        <div>
+          <span class="student-id">${s.studentId}</span>
+          <h3>${s.fullName}</h3>
+          <p>${s.course}</p>
+        </div>
+        <div class="expiry">
+          <small>EXPIRES</small>
+          <strong>${s.temporaryExpiryDate}</strong>
+        </div>
+      </div>
+
+      <div class="recipient">
+        ${icons.mail}
+        <span title="${displayEmail}">${displayEmail}</span>
+        <button onclick="openEmailModal('${s.studentId}')" aria-label="Edit recipient email" title="Edit recipient email">${icons.edit}</button>
+      </div>
+
+      <div class="card-actions">
+        ${notApproved ? `<button class="approve-button" onclick="approveStudent('${s.studentId}', this)">${icons.check} Approve</button>` : ''}
+        ${isRenewal ? `<button class="renew-button" onclick="openRenewalModal('${s.studentId}')">${icons.refresh} Extend</button>` : ''}
+        ${notApproved ? `<button class="reject-button" onclick="openRejectModal('${s.studentId}')">${icons.x} Reject</button>` : ''}
+        <button class="download-button" onclick="downloadDocument('${s.studentId}', this)" title="Download PDF">${icons.download}</button>
+      </div>
+    </article>`;
+  }).join('');
+
+  updateCounts();
+}
+
+// ── Update counts ──────────────────────────────────────────
+function updateCounts() {
+  const pending = students.filter(s => s.approvalStatus === 'PENDING_REVIEW').length;
+  const renewal = students.filter(s => s.renewalStatus === 'RENEWAL_REQUESTED').length;
+  const approved = students.filter(s => s.approvalStatus === 'APPROVED').length;
+  const ready = students.filter(s => s.approvalStatus === 'APPROVED' && s.emailStatus === 'READY_TO_SEND').length;
+
+  document.getElementById('pendingCount').textContent = pending;
+  document.getElementById('countPending').textContent = pending;
+  document.getElementById('countRenewal').textContent = renewal;
+  document.getElementById('countApproved').textContent = approved;
+  document.getElementById('approvedCount').textContent = ready;
+}
+
+// ── Actions ────────────────────────────────────────────────
+async function approveStudent(studentId, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  try {
+    const res = await fetch(`/admin/api/students/${studentId}/approve`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      const idx = students.findIndex(s => s.studentId === studentId);
+      if (idx !== -1) students[idx] = data.student;
+      renderCards();
+      showToast('ID approved and queued for email.');
+    } else {
+      showToast('Failed to approve ID', true);
+    }
+  } catch (err) {
+    showToast('Failed to approve ID', true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `${icons.check} Approve`;
+  }
+}
+
+// ── Dropdowns ──────────────────────────────────────────────
+function toggleDropdown(id, e) {
+  e.stopPropagation();
+  const dd = document.getElementById(id);
+  const isHidden = dd.classList.contains('hidden');
+  closeDropdowns();
+  if (isHidden) dd.classList.remove('hidden');
+}
+
+function closeDropdowns() {
+  document.querySelectorAll('.dropdown').forEach(d => d.classList.add('hidden'));
+}
+document.addEventListener('click', closeDropdowns);
+
+// ── Bulk Actions ───────────────────────────────────────────
+function toggleSelect(id, isChecked) {
+  if (isChecked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  updateBulkApproveBtn();
+}
+
+function updateBulkApproveBtn() {
+  const btn = document.getElementById('bulkApproveBtn');
+  const count = document.getElementById('bulkCount');
+  if (selectedIds.size > 0) {
+    btn.style.display = 'inline-flex';
+    count.textContent = selectedIds.size;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+async function bulkApprove() {
+  if (selectedIds.size === 0) return;
+  const btn = document.getElementById('bulkApproveBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Approving...';
+  
+  try {
+    const res = await fetch('/admin/api/students/bulk-approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentIds: Array.from(selectedIds) })
+    });
+    const data = await res.json();
+    if (data.success) {
+      selectedIds.clear();
+      showToast('Bulk approve successful!');
+      loadStudents();
+    }
+  } catch (err) {
+    showToast('Bulk approve failed', true);
+  } finally {
+    btn.disabled = false;
+    updateBulkApproveBtn();
+  }
+}
+
+async function downloadDocument(studentId, btn) {
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="spinner" style="border-color:rgba(0,0,0,.2);border-top-color:#64748b"></span>';
+  try {
+    const res = await fetch(`/admin/api/students/${studentId}/download`);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Download failed');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `CCT_Temporary_ID_${studentId}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`${studentId} document download started.`);
+    // Refresh student data
+    await loadStudents();
+  } catch (err) {
+    showToast(err.message || 'Download failed.', true);
+  } finally {
+    btn.classList.remove('loading');
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>`;
+  }
+}
+
+// ── Send single email ──────────────────────────────────────────────────────────
+async function sendEmail(studentId) {
+  try {
+    const res = await fetch(`/admin/api/students/${studentId}/email`, { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      showToast('Email sent successfully!');
+      loadStudents();
+    } else {
+      showToast(data.error || 'Email failed', true);
+    }
+  } catch (err) {
+    showToast('Email failed', true);
+  }
+}
+
+
+async function sendApprovedEmails() {
+  const btn = document.getElementById('sendBulkBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Sending...';
+  try {
+    const res = await fetch('/admin/api/email/send-approved', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      const { success } = data.results || {};
+      if (success > 0) showToast(`${success} email(s) sent successfully.`);
+      else showToast(data.message || 'No emails to send.');
+    }
+    await loadStudents();
+  } catch (err) {
+    showToast('Email dispatch failed.', true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg> Send approved IDs <span class="button-count" id="approvedCount">0</span>`;
+    updateCounts();
+  }
+}
+
+// ── Email Modal ────────────────────────────────────────────
+function openEmailModal(studentId) {
+  activeStudentId = studentId;
+  const s = students.find(s => s.studentId === studentId);
+  document.getElementById('emailInput').value = s.overrideEmail || s.email;
+  openModal('emailModal');
+}
+
+async function saveEmail() {
+  const email = document.getElementById('emailInput').value.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    showToast('Please enter a valid email address.', true);
+    return;
+  }
+  try {
+    const res = await fetch('/admin/api/email/override', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentId: activeStudentId, overrideEmail: email }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      const idx = students.findIndex(s => s.studentId === activeStudentId);
+      if (idx !== -1) students[idx].overrideEmail = email;
+      closeModal('emailModal');
+      renderCards();
+      showToast('Recipient email updated.');
+    }
+  } catch (err) {
+    showToast('Failed to update email.', true);
+  }
+}
+
+// ── Renewal Modal ──────────────────────────────────────────
+function openRenewalModal(studentId) {
+  activeStudentId = studentId;
+  const s = students.find(s => s.studentId === studentId);
+  document.getElementById('renewalStudentName').textContent = s.fullName;
+  openModal('renewalModal');
+}
+
+async function saveRenewal() {
+  const days = document.getElementById('renewalDays').value;
+  try {
+    const res = await fetch('/admin/api/renewals/process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentIds: [activeStudentId], extensionDays: days }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      closeModal('renewalModal');
+      await loadStudents();
+      showToast(`ID renewed — extended by ${days} days.`);
+    }
+  } catch (err) {
+    showToast('Renewal failed.', true);
+  }
+}
+
+// ── Reject Modal ───────────────────────────────────────────
+function openRejectModal(studentId) {
+  activeStudentId = studentId;
+  const s = students.find(s => s.studentId === studentId);
+  document.getElementById('rejectStudentName').textContent = s.fullName;
+  document.getElementById('rejectReason').value = '';
+  openModal('rejectModal');
+}
+
+async function saveReject() {
+  const reason = document.getElementById('rejectReason').value.trim();
+  try {
+    const res = await fetch(`/admin/api/students/${activeStudentId}/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    });
+    const data = await res.json();
+    if (data.success) {
+      const idx = students.findIndex(s => s.studentId === activeStudentId);
+      if (idx !== -1) students[idx] = data.student;
+      closeModal('rejectModal');
+      renderCards();
+      showToast('Submission rejected.');
+    }
+  } catch (err) {
+    showToast('Rejection failed.', true);
+  }
+}
+
+// ── Modal helpers ──────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.add('hidden');
+  document.body.style.overflow = '';
+  activeStudentId = null;
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(el => {
+  el.addEventListener('click', e => {
+    if (e.target === el) closeModal(el.id);
+  });
+});
+
+// ── Global Settings ────────────────────────────────────────
+let currentSettings = {};
+async function openGlobalSettings() {
+  try {
+    const res = await fetch('/admin/api/settings');
+    if (res.ok) {
+      currentSettings = await res.json();
+      document.getElementById('signerNameInput').value = currentSettings.authorizedSignerName || '';
+      document.getElementById('signerRoleInput').value = currentSettings.authorizedSignerRole || '';
+      document.getElementById('signerOrgInput').value = currentSettings.schoolName || '';
+      document.getElementById('presidentNameInput').value = currentSettings.presidentName || '';
+      document.getElementById('presidentTitleInput').value = currentSettings.presidentTitle || '';
+      document.getElementById('presidentSigUpload').value = '';
+    }
+  } catch (e) {}
+  openModal('settingsModal');
+}
+
+async function saveGlobalSettings() {
+  const btn = document.getElementById('saveSettingsBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  
+  const updates = {
+    authorizedSignerName: document.getElementById('signerNameInput').value.trim(),
+    authorizedSignerRole: document.getElementById('signerRoleInput').value.trim(),
+    schoolName: document.getElementById('signerOrgInput').value.trim(),
+    presidentName: document.getElementById('presidentNameInput').value.trim(),
+    presidentTitle: document.getElementById('presidentTitleInput').value.trim(),
+  };
+
+  try {
+    let res = await fetch('/admin/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    
+    const sigFile = document.getElementById('presidentSigUpload').files[0];
+    if (sigFile) {
+      const fd = new FormData();
+      fd.append('presidentSignature', sigFile);
+      await fetch('/admin/api/settings/president-signature', {
+        method: 'POST',
+        body: fd
+      });
+    }
+
+    showToast('Settings saved successfully.');
+    closeModal('settingsModal');
+  } catch (e) {
+    showToast('Failed to save settings.', true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save settings';
+  }
+}
+
+// ── Sidebar collapse ───────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const collapsed = sidebar.classList.toggle('collapsed');
+  document.getElementById('navLabel').style.display = collapsed ? 'none' : '';
+  document.getElementById('sidebarBottom').style.display = collapsed ? 'none' : '';
+  document.querySelectorAll('.brand-text').forEach(el => {
+    el.style.display = collapsed ? 'none' : '';
+  });
+}
+
+// ── Auth ───────────────────────────────────────────────────
+async function logout() {
+  try {
+    const res = await fetch('/api/auth/logout', { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) {
+      window.location.href = data.redirectUrl || '/admin/login';
+    } else {
+      showToast('Logout failed', true);
+    }
+  } catch (err) {
+    showToast('Logout failed', true);
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────
+loadAdminInfo();
+loadStudents();
+setInterval(loadStudents, 30000); // Auto-refresh every 30s
+</script>
+</body>
+</html>

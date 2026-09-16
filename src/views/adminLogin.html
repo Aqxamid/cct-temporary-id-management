@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login — City College of Tagaytay</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <link rel="icon" href="/favicon.ico" type="image/png">
+  <style>
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: url('/public/images/background.cct.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+    .login-card {
+      background: #fff;
+      border: 1px solid #e8ebef;
+      border-radius: 12px;
+      padding: 40px;
+      width: 100%;
+      max-width: 420px;
+      box-shadow: 0 10px 30px rgba(23, 34, 53, 0.05);
+    }
+    .login-card .brand {
+      justify-content: center;
+      margin-bottom: 30px;
+    }
+    .login-card .brand-mark {
+      width: 50px;
+      height: 50px;
+    }
+    .login-card .brand-text strong {
+      font-size: 18px;
+      line-height: 1.1;
+      max-width: none;
+    }
+    .login-card .brand-text small {
+      font-size: 13px;
+    }
+    .login-card h2 {
+      margin: 0 0 8px;
+      font-size: 24px;
+      letter-spacing: -.03em;
+      color: #172235;
+      text-align: center;
+    }
+    .login-card p {
+      color: #64748b;
+      font-size: 13px;
+      text-align: center;
+      margin: 0 0 30px;
+    }
+    .login-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .input-group label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #596779;
+    }
+    .input-group input {
+      border: 1px solid #dfe4e9;
+      border-radius: 6px;
+      padding: 12px;
+      outline: 0;
+      font-size: 13px;
+      color: #334155;
+      background: #fff;
+      transition: border-color .15s;
+    }
+    .input-group input:focus {
+      border-color: var(--red);
+    }
+    .login-btn {
+      margin-top: 10px;
+      width: 100%;
+      padding: 14px;
+      font-size: 13px;
+    }
+    .error-msg {
+      color: #e04444;
+      background: #fff0f0;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      margin-bottom: 16px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-card">
+    <div class="brand">
+      <img src="/public/images/logo_seal.png" class="brand-mark" alt="Logo">
+      <span class="brand-text">
+        <strong>City College of Tagaytay</strong>
+        <small>Temporary ID Admin</small>
+      </span>
+    </div>
+    
+    <h2>Admin Access</h2>
+    <p>Sign in to manage temporary student IDs.</p>
+
+    <div class="error-msg" id="errorMsg"></div>
+
+    <form class="login-form" id="loginForm">
+      <div class="input-group">
+        <label for="username">Username</label>
+        <input type="text" id="username" name="username" required placeholder="Enter username" autocomplete="username">
+      </div>
+      <div class="input-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" required placeholder="Enter password" autocomplete="current-password">
+      </div>
+      <button type="submit" class="primary-button login-btn" id="submitBtn">Sign In</button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const err = document.getElementById('errorMsg');
+      
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="border-width: 2px; width: 14px; height: 14px;"></span> Signing in...';
+      err.style.display = 'none';
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password })
+        });
+        
+        const data = await res.json();
+        
+        if (res.ok && data.success) {
+          window.location.href = data.redirectUrl || '/admin';
+        } else {
+          throw new Error(data.error || 'Login failed.');
+        }
+      } catch (error) {
+        err.textContent = error.message;
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Sign In';
+      }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student ID Upload Portal — City College of Tagaytay</title>
+  <meta name="description" content="Upload your 2x2 photo and digital signature to complete your temporary student ID application.">
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <link rel="icon" href="/favicon.ico" type="image/png">
+  <style>
+    body {
+      background: url('/public/images/background.cct.jpg') no-repeat center center fixed;
+      background-size: cover;
+    }
+    .camera-modal { position: fixed; inset: 0; background: #000d; display: grid; place-items: center; z-index: 200; }
+    .camera-modal.hidden { display: none; }
+    .camera-box { background: #172235; border-radius: 14px; padding: 24px; max-width: 480px; width: 95%; }
+    .camera-box h3 { color: #fff; margin: 0 0 16px; font-size: 16px; }
+    .camera-box video, .camera-box canvas { width: 100%; border-radius: 8px; display: block; }
+    .camera-box .cam-actions { display: flex; gap: 10px; margin-top: 14px; }
+    .cam-btn { flex: 1; padding: 11px; border-radius: 7px; border: 0; font-weight: 700; font-size: 12px; cursor: pointer; }
+    .cam-capture { background: var(--red); color: #fff; }
+    .cam-cancel { background: #334155; color: #94a3b8; }
+    .cam-retake { background: #1e3a5f; color: #60a5fa; }
+  </style>
+</head>
+<body>
+
+<div class="portal">
+  <!-- Header -->
+  <header class="portal-header">
+    <div class="brand">
+      <img src="/public/images/logo_seal.png" class="brand-mark" alt="Logo">
+      <span>
+        <strong>City College of Tagaytay</strong>
+        <small>Temporary ID Admin</small>
+      </span>
+    </div>
+    <a href="/admin" class="portal-link">Admin dashboard <span>↗</span></a>
+  </header>
+
+  <main class="portal-content">
+    <!-- Intro -->
+    <div class="portal-intro">
+      <div>
+        <h1>Photos &amp; signature</h1>
+        <p>Upload the assets we'll use to create your temporary student ID.</p>
+      </div>
+      <div class="progress">
+        <span>2</span>
+        <strong>Step 2 of 2</strong>
+        <small>Photos &amp; signature</small>
+      </div>
+    </div>
+
+    <div class="portal-grid">
+      <!-- Student Info Summary Card -->
+      <section class="portal-card summary-card">
+        <div class="section-heading">
+          <div>
+            <h2>Student information</h2>
+          </div>
+          <span class="locked">Read only</span>
+        </div>
+        <div class="summary-grid" id="summaryGrid">
+          <div><small>FULL NAME</small><strong id="infoName">Loading…</strong></div>
+          <div><small>STUDENT ID</small><strong id="infoId">—</strong></div>
+          <div><small>PROGRAMME</small><strong id="infoCourse">—</strong></div>
+          <div><small>DATE OF BIRTH</small><strong id="infoDob">—</strong></div>
+          <div><small>ID EXPIRY</small><strong id="infoExpiry">—</strong></div>
+        </div>
+      </section>
+
+      <!-- Photo Upload Card -->
+      <section class="portal-card photo-card">
+        <div class="section-heading">
+          <div>
+            <h2>Upload a clear photo</h2>
+          </div>
+          <span class="step-mark" id="photoStepMark">1</span>
+        </div>
+
+        <!-- Photo crop zone -->
+        <div class="photo-crop" id="photoCropZone" onclick="triggerPhotoUpload()">
+          <div class="crop-corners"></div>
+          <div id="photoPlaceholder">
+            <svg width="25" height="25" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block;margin:0 auto 8px"><path d="M14.5 4h-5L8 7H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3Z"/><circle cx="12" cy="13" r="3"/></svg>
+            <strong>Your photo appears here</strong>
+            <small>Square crop · JPG or PNG</small>
+          </div>
+          <img id="photoPreview" src="" alt="Photo preview" style="display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;">
+        </div>
+
+        <!-- Hidden file input -->
+        <input type="file" id="photoFileInput" accept="image/*" style="display:none" onchange="handlePhotoFile(this)">
+
+        <div class="photo-actions">
+          <button class="outline-button" onclick="triggerPhotoUpload()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg>
+            Upload photo
+          </button>
+          <button class="outline-button" onclick="openCameraCapture()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L8 7H5a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3Z"/><circle cx="12" cy="13" r="3"/></svg>
+            Camera capture
+          </button>
+        </div>
+
+        <label class="zoom">
+          Zoom
+          <input type="range" id="zoomSlider" min="0" max="100" value="35">
+          <span>+</span>
+        </label>
+      </section>
+
+      <!-- Signature Card -->
+      <section class="portal-card signature-card">
+        <div class="section-heading">
+          <div>
+            <h2>Add your signature</h2>
+          </div>
+          <span class="step-mark" id="sigStepMark">2</span>
+        </div>
+
+        <div class="tabs">
+          <button class="tab active" id="tabDraw" onclick="switchTab('draw')">Draw signature</button>
+          <button class="tab" id="tabUpload" onclick="switchTab('upload')">Upload image file</button>
+        </div>
+
+        <!-- Draw tab -->
+        <canvas id="signatureCanvas" width="620" height="210" aria-label="Signature drawing area"></canvas>
+
+        <!-- Upload tab -->
+        <div class="sig-upload-area hidden" id="sigUploadArea" onclick="triggerSigUpload()">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4"/><path d="m7 9 5-5 5 5"/><path d="M5 20h14"/></svg>
+          <strong id="sigUploadLabel">Click to upload signature image</strong>
+          <small>PNG, JPG — white background will be made transparent</small>
+          <img id="sigUploadPreview" style="display:none;max-width:100%;max-height:170px;object-fit:contain;" alt="Signature preview">
+        </div>
+        <input type="file" id="sigFileInput" accept="image/*" style="display:none" onchange="handleSigFile(this)">
+
+        <div class="signature-footer">
+          <p>
+            Draw ink on screen using touch or pointer.<br>
+            <span>White background is automatically converted to transparent PNG.</span>
+          </p>
+          <button class="clear-button" id="clearSigBtn" onclick="clearSignature()">Clear signature</button>
+        </div>
+      </section>
+    </div>
+
+    <!-- Submit Row -->
+    <div class="portal-submit">
+      <div>
+        <strong>Almost there.</strong>
+        <span class="hint">Review your uploads before submitting.</span>
+      </div>
+      <button class="primary-button" id="submitBtn" onclick="submitAssets()">
+        Submit photo &amp; signature <span>→</span>
+      </button>
+    </div>
+
+    <!-- Success Banner -->
+    <div class="success-banner hidden" id="successBanner">
+      <span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+      </span>
+      <div>
+        <strong>Submission received</strong>
+        <p>Your student ID assets are now with Temporary ID Admin for review.</p>
+      </div>
+      <button onclick="document.getElementById('successBanner').classList.add('hidden')">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+      </button>
+    </div>
+  </main>
+</div>
+
+<!-- Camera Modal -->
+<div class="camera-modal hidden" id="cameraModal">
+  <div class="camera-box">
+    <h3>Camera Capture</h3>
+    <video id="cameraVideo" autoplay playsinline style="display:block"></video>
+    <canvas id="cameraCanvas" style="display:none"></canvas>
+    <div class="cam-actions">
+      <button class="cam-btn cam-cancel" onclick="closeCameraModal()">Cancel</button>
+      <button class="cam-btn cam-retake hidden" id="retakeBtn" onclick="retakePhoto()">Retake</button>
+      <button class="cam-btn cam-capture" id="captureBtn" onclick="capturePhoto()">Capture</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { SignatureEngine } from '/public/js/signature.js';
+
+// ── Token from URL ─────────────────────────────────────────
+const token = window.location.pathname.split('/').pop();
+let studentData = null;
+let sigEngine = null;
+let currentTab = 'draw';
+let photoDataUrl = null;
+let sigDataUrl = null;
+let cameraStream = null;
+
+// ── Load student info ──────────────────────────────────────
+async function loadStudentInfo() {
+  try {
+    const res = await fetch(`/api/student/${token}`);
+    if (!res.ok) throw new Error('Not found');
+    studentData = await res.json();
+
+    document.getElementById('infoName').textContent = studentData.fullName;
+    document.getElementById('infoId').textContent = studentData.studentId;
+    document.getElementById('infoCourse').textContent = studentData.course;
+    document.getElementById('infoDob').textContent = studentData.dob;
+    document.getElementById('infoExpiry').textContent = studentData.temporaryExpiryDate;
+    document.title = `${studentData.fullName} — Student ID Upload`;
+  } catch (err) {
+    document.getElementById('infoName').textContent = 'Invalid link';
+  }
+}
+
+// ── Signature Engine ───────────────────────────────────────
+function initSignature() {
+  sigEngine = new SignatureEngine('signatureCanvas', 620, 210);
+}
+
+window.clearSignature = function() {
+  if (sigEngine) sigEngine.clear();
+  sigDataUrl = null;
+  updateSigMark(false);
+};
+
+window.switchTab = function(tab) {
+  currentTab = tab;
+  document.getElementById('tabDraw').classList.toggle('active', tab === 'draw');
+  document.getElementById('tabUpload').classList.toggle('active', tab === 'upload');
+  document.getElementById('signatureCanvas').classList.toggle('hidden', tab !== 'draw');
+  document.getElementById('sigUploadArea').classList.toggle('hidden', tab !== 'upload');
+  document.getElementById('clearSigBtn').style.display = tab === 'draw' ? '' : 'none';
+};
+
+// ── Photo Upload ───────────────────────────────────────────
+window.triggerPhotoUpload = function() {
+  document.getElementById('photoFileInput').click();
+};
+
+window.handlePhotoFile = function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    photoDataUrl = e.target.result;
+    showPhotoPreview(photoDataUrl);
+  };
+  reader.readAsDataURL(file);
+};
+
+function showPhotoPreview(src) {
+  const preview = document.getElementById('photoPreview');
+  const placeholder = document.getElementById('photoPlaceholder');
+  preview.src = src;
+  preview.style.display = 'block';
+  placeholder.style.display = 'none';
+  updatePhotoMark(true);
+}
+
+function updatePhotoMark(done) {
+  const mark = document.getElementById('photoStepMark');
+  if (done) {
+    mark.className = 'done-mark';
+    mark.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>';
+  } else {
+    mark.className = 'step-mark';
+    mark.textContent = '1';
+  }
+}
+
+function updateSigMark(done) {
+  const mark = document.getElementById('sigStepMark');
+  if (done) {
+    mark.className = 'done-mark';
+    mark.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>';
+  } else {
+    mark.className = 'step-mark';
+    mark.textContent = '2';
+  }
+}
+
+// ── Signature Upload Tab ───────────────────────────────────
+window.triggerSigUpload = function() {
+  document.getElementById('sigFileInput').click();
+};
+
+window.handleSigFile = async function(input) {
+  const file = input.files[0];
+  if (!file) return;
+  try {
+    await sigEngine.loadImageFile(file);
+    // Show preview in upload tab
+    const reader = new FileReader();
+    reader.onload = e => {
+      const preview = document.getElementById('sigUploadPreview');
+      preview.src = e.target.result;
+      preview.style.display = 'block';
+      document.getElementById('sigUploadLabel').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+    updateSigMark(true);
+  } catch (err) {
+    alert('Failed to load signature image.');
+  }
+};
+
+// ── Camera Capture ─────────────────────────────────────────
+window.openCameraCapture = async function() {
+  try {
+    cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+    document.getElementById('cameraVideo').srcObject = cameraStream;
+    document.getElementById('cameraModal').classList.remove('hidden');
+    document.getElementById('captureBtn').classList.remove('hidden');
+    document.getElementById('retakeBtn').classList.add('hidden');
+    document.getElementById('cameraVideo').style.display = 'block';
+    document.getElementById('cameraCanvas').style.display = 'none';
+  } catch (err) {
+    alert('Camera access denied or not available. Please upload a photo instead.');
+  }
+};
+
+window.capturePhoto = function() {
+  const video = document.getElementById('cameraVideo');
+  const canvas = document.getElementById('cameraCanvas');
+  canvas.width = video.videoWidth;
+  canvas.height = video.videoHeight;
+  const ctx = canvas.getContext('2d');
+  ctx.drawImage(video, 0, 0);
+  photoDataUrl = canvas.toDataURL('image/png');
+
+  video.style.display = 'none';
+  canvas.style.display = 'block';
+  document.getElementById('captureBtn').classList.add('hidden');
+  document.getElementById('retakeBtn').classList.remove('hidden');
+
+  // Stop camera stream
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+};
+
+window.retakePhoto = async function() {
+  await openCameraCapture();
+};
+
+window.closeCameraModal = function() {
+  if (cameraStream) {
+    cameraStream.getTracks().forEach(t => t.stop());
+    cameraStream = null;
+  }
+  document.getElementById('cameraModal').classList.add('hidden');
+  if (photoDataUrl) {
+    showPhotoPreview(photoDataUrl);
+  }
+};
+
+// Apply captured photo when closing
+document.getElementById('cameraModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('cameraModal')) {
+    closeCameraModal();
+  }
+});
+
+// ── Submit ─────────────────────────────────────────────────
+window.submitAssets = async function() {
+  const btn = document.getElementById('submitBtn');
+
+  // Validate photo
+  if (!photoDataUrl) {
+    alert('Please upload or capture a photo before submitting.');
+    return;
+  }
+
+  // Get signature
+  let finalSigData = null;
+  if (currentTab === 'draw') {
+    if (sigEngine && !sigEngine.isEmpty()) {
+      finalSigData = sigEngine.getTransparentPNG();
+    }
+  } else {
+    if (sigEngine && !sigEngine.isEmpty()) {
+      finalSigData = sigEngine.getTransparentPNG();
+    }
+  }
+
+  if (!finalSigData) {
+    alert('Please draw or upload your signature before submitting.');
+    return;
+  }
+
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Submitting…';
+
+  try {
+    const formData = new FormData();
+    formData.append('photoData', photoDataUrl);
+    formData.append('signatureData', finalSigData);
+
+    const res = await fetch(`/api/student/upload/${token}`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      document.getElementById('successBanner').classList.remove('hidden');
+      btn.innerHTML = '✓ Submitted';
+      btn.style.background = '#10b981';
+      updateSigMark(true);
+    } else {
+      throw new Error(data.error || 'Submission failed.');
+    }
+  } catch (err) {
+    alert(err.message || 'Submission failed. Please try again.');
+    btn.disabled = false;
+    btn.innerHTML = 'Submit photo &amp; signature <span>→</span>';
+  }
+};
+
+// ── Init ───────────────────────────────────────────────────
+loadStudentInfo();
+initSignature();
+</script>
+</body>
+</html>

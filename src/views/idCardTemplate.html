@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Temporary Student Identification Certificate — City College of Tagaytay</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #d0d0d0;
+      /* Aptos is available on Windows systems with Office 2022+, falls back to Calibri then sans-serif */
+      font-family: 'Aptos', 'Aptos (Body)', Calibri, 'Segoe UI', Arial, sans-serif;
+      font-size: 11pt;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 30px 20px;
+    }
+
+    .no-print {
+      margin-bottom: 20px;
+      display: flex;
+      gap: 10px;
+    }
+    .no-print button {
+      background: #1a1a1a; color: #fff; border: none; border-radius: 8px;
+      padding: 10px 22px; font-size: 13px; font-weight: 700;
+      cursor: pointer;
+      display: inline-flex; align-items: center; gap: 8px;
+    }
+    .no-print button:hover { background: #333; }
+
+    /* ── PAGE ── */
+    .page {
+      width: 8.5in;
+      min-height: 11in;
+      background: #fff;
+      padding: 0.5in 0.6in 0.5in;
+      box-shadow: 0 4px 32px rgba(0,0,0,.25);
+      position: relative;
+    }
+
+    /* Corner marks */
+    .corner { position: absolute; width: 22px; height: 22px; border-color: #555; border-style: solid; }
+    .corner.tl { top: 14px; left: 14px; border-width: 1.5px 0 0 1.5px; }
+    .corner.tr { top: 14px; right: 14px; border-width: 1.5px 1.5px 0 0; }
+    .corner.bl { bottom: 14px; left: 14px; border-width: 0 0 1.5px 1.5px; }
+    .corner.br { bottom: 14px; right: 14px; border-width: 0 1.5px 1.5px 0; }
+
+    /* ── HEADER ── */
+    .cert-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 6px;
+      border-bottom: 3px double #000;
+      margin-bottom: 12px;
+    }
+    .cert-header .logo-mis {
+      height: 56px;
+      width: auto;
+      object-fit: contain;
+    }
+    .cert-header .school-right {
+      text-align: right;
+    }
+    /* 11pt bold for school name */
+    .cert-header .school-right .school-name {
+      font-size: 11pt;
+      font-weight: 700;
+      line-height: 1.2;
+    }
+    /* 8pt for department name */
+    .cert-header .school-right .dept-name {
+      font-size: 8pt;
+      line-height: 1.3;
+      margin-top: 2px;
+    }
+
+    /* ── CERT TITLE: 16pt bold centered ── */
+    .cert-title {
+      text-align: center;
+      font-size: 16pt;
+      font-weight: 700;
+      color: #000;
+      margin: 12px 0 14px;
+    }
+
+    /* ── DATE: 11pt ── */
+    .cert-date {
+      font-size: 11pt;
+      margin-bottom: 10px;
+    }
+
+    /* ── CERTIFY TEXT: 11pt centered ── */
+    .certify-text {
+      text-align: center;
+      font-size: 11pt;
+      margin-bottom: 8px;
+    }
+
+    /* ── INFO BOX: 11pt ── */
+    .info-box {
+      border: 1.5px solid #000;
+      padding: 8px 12px;
+      margin-bottom: 12px;
+      font-size: 11pt;
+      line-height: 1.85;
+    }
+    .info-row { display: flex; }
+    .info-label { flex-shrink: 0; }
+    .info-val { font-weight: 700; }
+    .opt-selected { font-weight: 700; text-decoration: underline; }
+    .opt-dim { font-weight: 400; }
+
+    /* ── BODY TEXT: 11pt justified ── */
+    .cert-body {
+      font-size: 11pt;
+      line-height: 1.7;
+      text-align: justify;
+      margin-bottom: 8px;
+    }
+    .cert-body a { color: #000; text-decoration: none; }
+
+    /* Double-line separator */
+    .separator-line {
+      border: none;
+      border-bottom: 2px double #000;
+      margin: 10px 0 14px;
+    }
+
+    /* ── BOTTOM 3-COLUMN ── */
+    .cert-bottom {
+      display: grid;
+      grid-template-columns: 155px 1fr 185px;
+      gap: 14px;
+      align-items: start;
+    }
+
+    /* ── LEFT: Authorized signature — 11pt ── */
+    .left-col {
+      font-size: 11pt;
+      line-height: 1.7;
+    }
+    .left-col .auth-label { margin-bottom: 34px; }
+    .left-col .sig-line {
+      border-top: 1.5px solid #000;
+      width: 140px;
+      margin-bottom: 3px;
+    }
+    .left-col .sig-name {
+      font-size: 11pt;
+      font-weight: 700;
+    }
+    .left-col .sig-role { font-size: 11pt; }
+    .left-col .sig-school { font-size: 11pt; }
+
+    /* Editable signer — visible only on screen */
+    .signer-edit-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      margin-top: 6px;
+      background: none;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      padding: 2px 8px;
+      font-size: 9pt;
+      cursor: pointer;
+      color: #555;
+    }
+    .signer-edit-btn:hover { background: #f5f5f5; }
+
+    /* ── CENTER: ID Card Front (Image Template) ── */
+    .id-card-front {
+      width: 280px;
+      height: 480px;
+      margin: 0 auto;
+      background: url('/public/images/id_template_front.jpeg') no-repeat center center;
+      background-size: 100% 100%;
+      border: 1px solid #888;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+      font-family: 'Aptos', Calibri, Arial, sans-serif;
+      position: relative;
+    }
+    
+    .id-front-photo {
+      position: absolute;
+      top: 135px;
+      left: 20px;
+      width: 98px;
+      height: 125px;
+      background: #f0f0f0;
+      border: 1px solid #999;
+    }
+    .id-front-photo img { width: 100%; height: 100%; object-fit: cover; }
+    
+    .id-front-name {
+      position: absolute;
+      top: 325px;
+      left: 10px;
+      right: 10px;
+      text-align: center;
+      font-size: 13pt;
+      font-weight: 900;
+      text-transform: uppercase;
+      color: #000;
+      line-height: 1.1;
+    }
+    
+    .id-front-course {
+      position: absolute;
+      top: 365px;
+      left: 10px;
+      right: 10px;
+      text-align: center;
+      font-size: 11pt;
+      font-weight: 700;
+      color: #222;
+    }
+    
+    .id-front-expiry {
+      position: absolute;
+      top: 390px;
+      left: 10px;
+      right: 10px;
+      text-align: center;
+      font-size: 8pt;
+      color: #000;
+    }
+    
+    .id-front-number {
+      position: absolute;
+      bottom: 15px;
+      left: 15px;
+      font-size: 16pt;
+      font-weight: 900;
+      color: #fff;
+    }
+    
+    .id-front-qr {
+      position: absolute;
+      bottom: 12px;
+      right: 12px;
+      width: 55px;
+      height: 55px;
+      background: #fff;
+    }
+    .id-front-qr img { width: 100%; height: 100%; object-fit: contain; }
+
+    /* ── RIGHT: ID Card Back (Image Template) ── */
+    .id-card-back {
+      width: 280px;
+      height: 480px;
+      background: url('/public/images/id_template_back.jpeg') no-repeat center center;
+      background-size: 100% 100%;
+      border: 1px solid #888;
+      box-shadow: 0 2px 8px rgba(0,0,0,.2);
+      font-family: 'Aptos', Calibri, Arial, sans-serif;
+      position: relative;
+    }
+    
+    .id-back-em-name { position: absolute; top: 52px; left: 75px; font-size: 10pt; font-weight: 700; }
+    .id-back-em-addr { position: absolute; top: 82px; left: 15px; font-size: 9pt; font-weight: 700; width: 250px; line-height: 1.1; }
+    .id-back-em-phone { position: absolute; top: 122px; left: 70px; font-size: 10pt; font-weight: 700; }
+    
+    /* Dynamically positioned semester years */
+    .id-back-sem-year { font-size: 9pt; font-weight: 400; position: absolute; left: 20px; }
+    .sy-1 { top: 177px; }
+    .sy-2 { top: 200px; }
+    .sy-3 { top: 223px; }
+    .sy-4 { top: 246px; }
+    
+    .id-back-sig-img {
+      position: absolute;
+      bottom: 110px;
+      left: 15px;
+      width: 250px;
+      height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .id-back-sig-img img { max-width: 100%; max-height: 100%; object-fit: contain; }
+
+    .id-back-president-sig {
+      position: absolute;
+      bottom: 35px;
+      left: 15px;
+      width: 250px;
+      height: 55px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .id-back-president-sig img { max-width: 100%; max-height: 100%; object-fit: contain; }
+    .id-back-president-name {
+      position: absolute;
+      bottom: 16px;
+      left: 10px;
+      right: 10px;
+      text-align: center;
+      font-size: 11pt;
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+
+    /* Signer modal */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.5); z-index: 1000;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal-box {
+      background: #fff; border-radius: 12px;
+      padding: 28px 28px 22px; max-width: 380px; width: 100%;
+      box-shadow: 0 8px 32px rgba(0,0,0,.25);
+      font-family: 'Aptos', Calibri, Arial, sans-serif;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-box h3 { font-size: 15px; margin-bottom: 16px; margin-top: 10px; }
+    .modal-box h3:first-child { margin-top: 0; }
+    .modal-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
+    .modal-field label { font-size: 12px; font-weight: 600; color: #444; }
+    .modal-field input {
+      padding: 8px 10px; border: 1px solid #ccc;
+      border-radius: 7px; font-size: 13px;
+    }
+    .modal-field input:focus { outline: none; border-color: #8B1520; }
+    .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+    .modal-actions button {
+      padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600;
+      cursor: pointer; border: none;
+    }
+    .btn-save { background: #6b0d12; color: #fff; }
+    .btn-cancel { background: #f0f0f0; color: #333; }
+
+    /* ── PRINT ── */
+    @media print {
+      body { background: #fff; padding: 0; }
+      .no-print, .signer-edit-btn, .modal-overlay { display: none !important; }
+      .page { box-shadow: none; }
+      * { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- Signer edit modal (screen only) -->
+<div class="modal-overlay" id="signerModal">
+  <div class="modal-box">
+    <h3>Edit MIS Officer</h3>
+    <div class="modal-field">
+      <label>Full Name</label>
+      <input type="text" id="signerNameInput" placeholder="Joel Mari J. Alcala">
+    </div>
+    <div class="modal-field">
+      <label>Role / Position</label>
+      <input type="text" id="signerRoleInput" placeholder="MIS Officer">
+    </div>
+    <div class="modal-field">
+      <label>Organization</label>
+      <input type="text" id="signerOrgInput" placeholder="City College of Tagaytay">
+    </div>
+
+    <h3>Edit College President</h3>
+    <div class="modal-field">
+      <label>President Name</label>
+      <input type="text" id="presidentNameInput" placeholder="Celso P. De Castro">
+    </div>
+    <div class="modal-field">
+      <label>President Title</label>
+      <input type="text" id="presidentTitleInput" placeholder="College President">
+    </div>
+    <div class="modal-field">
+      <label>President Signature Image</label>
+      <input type="file" id="presidentSigUpload" accept="image/*">
+    </div>
+
+    <div class="modal-actions" style="margin-top: 20px;">
+      <button class="btn-cancel" onclick="closeSignerModal()">Cancel</button>
+      <button class="btn-save" onclick="saveSigner()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="no-print">
+  <button onclick="window.print()">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+    Print / Save as PDF
+  </button>
+</div>
+
+<div class="page">
+  <div class="corner tl"></div>
+  <div class="corner tr"></div>
+  <div class="corner bl"></div>
+  <div class="corner br"></div>
+
+  <!-- HEADER -->
+  <div class="cert-header">
+    <img class="logo-mis" src="/public/images/logo_header.png" alt="MIS Office">
+    <div class="school-right">
+      <div class="school-name">CITY COLLEGE OF TAGAYTAY</div>
+      <div class="dept-name">MANAGEMENT INFORMATION SYSTEM OFFICE</div>
+    </div>
+  </div>
+
+  <!-- TITLE 16pt -->
+  <div class="cert-title">Temporary Student Identification Certificate</div>
+
+  <!-- DATE 11pt -->
+  <div class="cert-date">Date: <span id="certDate">—</span></div>
+
+  <!-- CERTIFY 11pt -->
+  <div class="certify-text">This is to certify that:</div>
+
+  <!-- INFO BOX 11pt -->
+  <div class="info-box">
+    <div class="info-row"><span class="info-label">Student Name:&nbsp;</span><span class="info-val" id="infoName">—</span></div>
+    <div class="info-row"><span class="info-label">Date of Birth:&nbsp;</span><span class="info-val" id="infoDob">—</span></div>
+    <div class="info-row"><span class="info-label">Student ID Number (if applicable):&nbsp;</span><span class="info-val" id="infoId">—</span></div>
+    <div class="info-row"><span class="info-label">Course/Program:&nbsp;</span><span class="info-val" id="infoCourse">—</span></div>
+    <div class="info-row"><span class="info-label">Enrollment Status:&nbsp;</span><span id="infoEnrollment">[<span class="opt-selected">Full-time</span>/Part-time]</span></div>
+    <div class="info-row"><span class="info-label">Program Start Date:&nbsp;</span><span class="info-val" id="infoStart">—</span></div>
+    <div class="info-row"><span class="info-label">Temporary ID Expiry Date:&nbsp;</span><span class="info-val" id="infoExpiry">—</span></div>
+  </div>
+
+  <!-- BODY PARAGRAPHS 11pt -->
+  <p class="cert-body">has been issued a Temporary Student ID for the purpose of identification during their enrollment at City College of Tagaytay. This temporary ID is valid until the issuance of the permanent student ID card, which will be processed upon the completion of necessary formalities.</p>
+  <p class="cert-body" style="margin-top:8px;">The student is expected to carry this ID while on campus and for any official dealings with the institution. Should you have any questions, please feel free to contact our office at <a href="mailto:mis@citycollegeoftagaytay.edu.ph">mis@citycollegeoftagaytay.edu.ph</a></p>
+
+  <hr class="separator-line">
+
+  <!-- BOTTOM 3-COLUMN -->
+  <div class="cert-bottom">
+
+    <!-- LEFT: Authorized Signature 11pt -->
+    <div class="left-col">
+      <div class="auth-label">Authorized Signature:</div>
+      <div class="sig-line"></div>
+      <div class="sig-name" id="signerName">—</div>
+      <div class="sig-role" id="signerRole">—</div>
+      <div class="sig-school" id="signerOrg">—</div>
+    </div>
+
+    <!-- CENTER: ID Card Front Template -->
+    <div class="id-card-front">
+      <div class="id-front-photo"><img id="cardPhoto" src="" alt="" onerror="this.style.display='none'"></div>
+      <div class="id-front-name" id="cardName">—</div>
+      <div class="id-front-course" id="cardCourse">—</div>
+      <div class="id-front-expiry">TEMPORARY ID VALID UNTIL: <strong id="cardExpiry">—</strong></div>
+      <div class="id-front-number" id="cardId">—</div>
+      <div class="id-front-qr"><img id="cardQr" src="" alt="" onerror="this.style.display='none'"></div>
+    </div>
+
+    <!-- RIGHT: ID Card Back Template -->
+    <div class="id-card-back">
+      <div class="id-back-em-name" id="emName">—</div>
+      <div class="id-back-em-addr" id="emAddress">—</div>
+      <div class="id-back-em-phone" id="emPhone">—</div>
+      
+      <!-- Dynamically generated semester table years -->
+      <div class="id-back-sem-year sy-1" id="sy1">—</div>
+      <div class="id-back-sem-year sy-2" id="sy2">—</div>
+      <div class="id-back-sem-year sy-3" id="sy3">—</div>
+      <div class="id-back-sem-year sy-4" id="sy4">—</div>
+
+      <div class="id-back-sig-img"><img id="cardSig" src="" alt="" onerror="this.style.display='none'"></div>
+
+      <div class="id-back-president-sig"><img id="presSig" src="" alt="" onerror="this.style.display='none'"></div>
+      <div class="id-back-president-name" id="presidentName">CELSO P. DE CASTRO</div>
+    </div>
+
+  </div><!-- /.cert-bottom -->
+</div><!-- /.page -->
+
+<script>
+const base = window.location.origin;
+let currentSettings = {};
+
+async function loadCardData() {
+  const studentId = decodeURIComponent(window.location.pathname.split('/').pop());
+
+  // Date
+  document.getElementById('certDate').textContent = new Date().toLocaleDateString('en-US', {
+    year: 'numeric', month: 'long', day: 'numeric'
+  });
+
+  // Load settings (signer info)
+  try {
+    const sr = await fetch(`${base}/admin/api/settings`);
+    if (sr.ok) {
+      currentSettings = await sr.json();
+      applySettings(currentSettings);
+    }
+  } catch (_) {}
+
+  // Load student data
+  try {
+    const res = await fetch(`${base}/admin/api/students/${encodeURIComponent(studentId)}`);
+    if (!res.ok) throw new Error('Not found');
+    const s = await res.json();
+
+    document.getElementById('infoName').textContent    = s.fullName || '—';
+    document.getElementById('infoDob').textContent     = s.dob || '—';
+    document.getElementById('infoId').textContent      = s.studentId || '—';
+    document.getElementById('infoCourse').textContent  = s.course || '—';
+    document.getElementById('infoStart').textContent   = s.programStartDate || '—';
+    document.getElementById('infoExpiry').textContent  = s.temporaryExpiryDate || '—';
+
+    const isFullTime = !(s.enrollmentStatus || '').toLowerCase().includes('part');
+    document.getElementById('infoEnrollment').innerHTML =
+      `[<span class="${isFullTime ? 'opt-selected' : 'opt-dim'}">Full-time</span>/<span class="${!isFullTime ? 'opt-selected' : 'opt-dim'}">Part-time</span>]`;
+
+    document.getElementById('cardName').textContent   = (s.fullName || '—').toUpperCase();
+    document.getElementById('cardCourse').textContent = s.course || '—';
+    document.getElementById('cardExpiry').textContent = s.temporaryExpiryDate || '—';
+    document.getElementById('cardId').textContent     = s.studentId || '—';
+    document.getElementById('emName').textContent     = s.guardianName || '—';
+    document.getElementById('emAddress').textContent  = s.address || '—';
+    document.getElementById('emPhone').textContent    = s.phone || '—';
+    document.title = `Temp ID — ${s.fullName}`;
+
+    // Compute semester years based on start date
+    if (s.programStartDate) {
+      const year = parseInt(s.programStartDate.substring(0, 4), 10);
+      if (!isNaN(year)) {
+        document.getElementById('sy1').textContent = `${year}-${year+1}`;
+        document.getElementById('sy2').textContent = `${year+1}-${year+2}`;
+        document.getElementById('sy3').textContent = `${year+2}-${year+3}`;
+        document.getElementById('sy4').textContent = `${year+3}-${year+4}`;
+      }
+    }
+
+    if (s.photoUrl) {
+      document.getElementById('cardPhoto').src = `${base}/${s.photoUrl}`;
+    }
+    if (s.signatureUrl) document.getElementById('cardSig').src = `${base}/${s.signatureUrl}`;
+    if (s.qrCodeUrl) document.getElementById('cardQr').src = `${base}/${s.qrCodeUrl}`;
+  } catch (err) {
+    document.getElementById('infoName').textContent = '— Student not found —';
+  }
+}
+
+function applySettings(s) {
+  if (s.authorizedSignerName) document.getElementById('signerName').textContent = s.authorizedSignerName;
+  if (s.authorizedSignerRole) document.getElementById('signerRole').textContent = s.authorizedSignerRole;
+  if (s.schoolName) document.getElementById('signerOrg').textContent = s.schoolName;
+  if (s.presidentName) document.getElementById('presidentName').textContent = s.presidentName.toUpperCase();
+  if (s.presidentSignatureUrl) {
+    document.getElementById('presSig').src = `${base}/${s.presidentSignatureUrl}?t=${Date.now()}`;
+    document.getElementById('presSig').style.display = 'block';
+  }
+}
+
+function openSignerModal() {
+  document.getElementById('signerNameInput').value = currentSettings.authorizedSignerName || '';
+  document.getElementById('signerRoleInput').value = currentSettings.authorizedSignerRole || '';
+  document.getElementById('signerOrgInput').value  = currentSettings.schoolName || '';
+  document.getElementById('presidentNameInput').value = currentSettings.presidentName || '';
+  document.getElementById('presidentTitleInput').value = currentSettings.presidentTitle || '';
+  document.getElementById('presidentSigUpload').value = '';
+  document.getElementById('signerModal').classList.add('open');
+}
+
+function closeSignerModal() {
+  document.getElementById('signerModal').classList.remove('open');
+}
+
+async function saveSigner() {
+  const btn = document.querySelector('.btn-save');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  
+  const updates = {
+    authorizedSignerName: document.getElementById('signerNameInput').value.trim(),
+    authorizedSignerRole: document.getElementById('signerRoleInput').value.trim(),
+    schoolName: document.getElementById('signerOrgInput').value.trim(),
+    presidentName: document.getElementById('presidentNameInput').value.trim(),
+    presidentTitle: document.getElementById('presidentTitleInput').value.trim(),
+  };
+
+  try {
+    // 1. Update text settings
+    let res = await fetch(`${base}/admin/api/settings`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    let data = await res.json();
+    if (data.success) currentSettings = data.settings;
+
+    // 2. Upload president signature if provided
+    const sigFile = document.getElementById('presidentSigUpload').files[0];
+    if (sigFile) {
+      const fd = new FormData();
+      fd.append('presidentSignature', sigFile);
+      const sigRes = await fetch(`${base}/admin/api/settings/president-signature`, {
+        method: 'POST',
+        body: fd
+      });
+      const sigData = await sigRes.json();
+      if (sigData.success) currentSettings = sigData.settings;
+    }
+
+    applySettings(currentSettings);
+    closeSignerModal();
+  } catch (e) {
+    alert('Failed to save. Make sure you are logged in as admin.');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save';
+  }
+}
+
+loadCardData();
+</script>
+</body>
+</html>
