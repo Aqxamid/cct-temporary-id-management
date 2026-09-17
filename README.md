@@ -70,7 +70,7 @@ student-id-management-system/
 ## Setup & Running Locally
 
 ### Prerequisites
-- [Node.js](https://nodejs.org/) v18 or later
+- [Node.js](https://nodejs.org/) v22.12 or later
 - A Gmail account with an [App Password](https://support.google.com/accounts/answer/185833) enabled (for SMTP)
 
 ### 1. Install dependencies
@@ -90,6 +90,9 @@ cp .env.example .env
 | `PUBLIC_BASE_URL` | Base URL used in student upload links (e.g. `http://localhost:3000`) |
 | `EMAIL_BANNER_URL` | Optional public URL for `mis_email_banner.png` in email bodies; the banner is also attached to every email |
 | `JWT_SECRET` | Long random string for JWT signing |
+| `SEED_ADMIN_USERNAME` | Optional seed-admin username; set before the first seed run |
+| `SEED_ADMIN_PASSWORD` | Optional seed-admin password; set before the first seed run |
+| `SEED_DATA_DIR` | Optional alternate directory for seed JSON files, useful for isolated test data |
 | `SMTP_HOST` | SMTP server host (e.g. `smtp.gmail.com`) |
 | `SMTP_PORT` | SMTP port (typically `587`) |
 | `SMTP_USER` | Your sending email address |
@@ -104,7 +107,40 @@ cp .env.example .env
 
 The `.env` file contains secrets and is intentionally ignored by Git. Use `.env.example` as the safe configuration template. Runtime databases, uploaded student assets, generated QR codes, generated PDFs, and the president's uploaded signature are also ignored because they may contain private or generated data. The source `public/images/mis_email_banner.png` is tracked because it is a reusable application asset.
 
-### 3. Start the server
+### 3. Seed sample admin and student (optional)
+
+The seed command adds one development admin and one development student to the JSON files. It does not delete or overwrite existing records, so it is safe to run repeatedly:
+
+```bash
+npm run seed
+```
+
+The seeded records are:
+
+| Record | Value |
+|---|---|
+| Admin username | `sample_admin` |
+| Admin password | `Admin123!` |
+| Student ID | `2026019999` |
+| Student upload token | `token-seed-2026019999` |
+
+For a first-time seed, set a different admin username and password before running the command. PowerShell:
+
+```powershell
+$env:SEED_ADMIN_USERNAME = "mis_admin"
+$env:SEED_ADMIN_PASSWORD = "use-a-long-development-password"
+npm run seed
+```
+
+macOS/Linux:
+
+```bash
+SEED_ADMIN_USERNAME=mis_admin SEED_ADMIN_PASSWORD='use-a-long-development-password' npm run seed
+```
+
+The seed script only creates the admin if its seed `adminId` and username do not already exist; changing these variables after the record has been seeded does not change the existing password. Do not use the sample credentials in production. For multiple students, use the admin dashboard, the student API, or the bulk CSV/JSON import described below.
+
+### 4. Start the server
 
 **Production / normal start:**
 ```bash
@@ -116,13 +152,72 @@ npm start
 npm run dev
 ```
 
-### 4. Access the system
+### 5. Access the system
 
 | URL | Description |
 |---|---|
 | `http://localhost:3000/admin` | Admin dashboard (login required) |
 | `http://localhost:3000/admin/login` | Admin login page |
 | `http://localhost:3000/upload/:token` | Student upload portal (per-student link) |
+
+With the sample data, open:
+
+```text
+http://localhost:3000/upload/token-seed-2026019999
+```
+
+### 6. Expose the student upload portal
+
+Use a tunnel when students need to reach a server running on your computer. Start the application first, then run one of the following in a second terminal.
+
+#### Option A: ngrok
+
+Install ngrok and authenticate it once, then expose port `3000`:
+
+```bash
+ngrok config add-authtoken YOUR_NGROK_AUTHTOKEN
+ngrok http 3000
+```
+
+Copy the HTTPS forwarding URL printed by ngrok, for example `https://example-name.ngrok-free.app`, and set it as `PUBLIC_BASE_URL` in `.env`:
+
+```dotenv
+PUBLIC_BASE_URL=https://example-name.ngrok-free.app
+```
+
+Restart the Node server after changing `.env`. The sample student portal will then be available at:
+
+```text
+https://example-name.ngrok-free.app/upload/token-seed-2026019999
+```
+
+The upload request itself uses:
+
+```text
+POST https://example-name.ngrok-free.app/api/student/upload/token-seed-2026019999
+```
+
+#### Option B: Cloudflare Quick Tunnel
+
+Install `cloudflared`, then run:
+
+```bash
+cloudflared tunnel --url http://localhost:3000
+```
+
+Cloudflare prints a temporary `https://...trycloudflare.com` URL. Put that URL in `.env` as `PUBLIC_BASE_URL`, restart the server, and use the same `/upload/token-seed-2026019999` path. Quick Tunnels are intended for testing and development; use a named Cloudflare Tunnel with a stable hostname for longer-running deployments.
+
+#### Option C: Same local network
+
+If the student is on the same trusted network, find the computer's LAN address and set, for example:
+
+```dotenv
+PUBLIC_BASE_URL=http://192.168.1.25:3000
+```
+
+Then share `http://192.168.1.25:3000/upload/token-seed-2026019999`. Allow port `3000` through the computer's firewall only for the trusted network. This option does not work for students outside that network.
+
+Only the student portal and its upload API are public. The `/admin` routes remain protected by the intranet-only middleware and admin authentication.
 
 ---
 
@@ -222,4 +317,4 @@ Changes apply to all newly generated IDs and persist across restarts via `data/s
 - **Email**: Nodemailer
 - **Auth**: JWT + bcrypt
 - **Storage**: JSON flat-file (no database required)
-- **Templating**: docxtemplater + pizzip
+- **ID card rendering**: HTML/CSS + Puppeteer

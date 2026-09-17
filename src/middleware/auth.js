@@ -1,5 +1,4 @@
 import jwt from 'jsonwebtoken';
-import { intranetOnly as checkIntranet } from './intranet.js'; // We'll move intranetOnly to intranet.js
 
 const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_intranet_key_2026';
 
@@ -25,4 +24,3 @@ export function requireAdminAuth(req, res, next) {
     return res.redirect('/admin/login');
   }
 }
-

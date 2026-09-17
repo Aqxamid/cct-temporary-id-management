@@ -8,6 +8,7 @@ import cookieParser from 'cookie-parser';
 
 import { PORT } from './src/config/env.js';
 import { requireAdminAuth } from './src/middleware/auth.js';
+import { intranetOnly } from './src/middleware/intranet.js';
 import authRoutes from './src/routes/authRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
 import studentRoutes from './src/routes/studentRoutes.js';
@@ -60,7 +61,7 @@ app.get('/admin/login', (req, res) => {
 });
 
 // Protected Routes
-app.use('/admin', requireAdminAuth, adminRoutes);
+app.use('/admin', intranetOnly, requireAdminAuth, adminRoutes);
 app.use('/api/renew', renewalRoutes);
 app.use('/', studentRoutes);
 

@@ -8,22 +8,20 @@ node_modules/
 
 # ─── Runtime Data ────────────────────────────────────────────────────────────
 # Student database (contains PII — never commit)
-data/students.json
-data/admins.json
-data/settings.json
+data/*
 
 # User uploads
-uploads/photos/
-uploads/signatures/
-uploads/qrcodes/
-uploads/documents/
+uploads/*
 
 # Generated ID documents
-student_temporary_id_doc/
+student_temporary_id_doc/*
 
-# Runtime-generated president signature; keep the source banner and templates tracked
-public/images/president_signature.png
+# Runtime-generated president signatures; keep the source banner and templates tracked
+public/images/president_signature.*
 !public/images/mis_email_banner.png
+
+# Local tunnel credentials/configuration
+.cloudflared/
 
 # ─── Logs ────────────────────────────────────────────────────────────────────
 *.log
