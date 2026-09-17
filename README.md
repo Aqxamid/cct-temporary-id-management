@@ -18,6 +18,7 @@ A web-based intranet system for issuing and managing **temporary student IDs**. 
 | **Email Automation** | Sends approval notifications with the MIS banner and downloadable PDF ID attachment |
 | **Bulk Student Import** | Import CSV or JSON reference data; duplicate student IDs are skipped safely |
 | **Auth & Rate Limiting** | JWT-based admin auth, bcrypt passwords, express-rate-limit |
+| **Activity Logs** | Local request logs for dashboard activity, status changes, uploads, and errors |
 | **QR Renewal** | QR-code based renewal flow for student ID requests |
 
 ---
@@ -165,6 +166,8 @@ With the sample data, open:
 ```text
 http://localhost:3000/upload/token-seed-2026019999
 ```
+
+The `Newest first` / `Oldest first` control applies to every student filter and to Activity logs. Student records use their latest update/submission timestamp, with their insertion order as the fallback when records share the same date. Activity logs use the request timestamp.
 
 ### 6. Expose the student upload portal
 

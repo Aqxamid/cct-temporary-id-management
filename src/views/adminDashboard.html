@@ -45,6 +45,10 @@
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
         <span>Email logs</span>
       </button>
+      <button class="nav-item" id="navLogs" onclick="showActivityLogs()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2"/></svg>
+        <span>Activity logs</span>
+      </button>
       <button class="nav-item" id="navSettings" onclick="openGlobalSettings()">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
         <span>Global Settings</span>
@@ -95,7 +99,7 @@
     <section class="toolbar">
       <label class="search">
         <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
-        <input id="searchInput" type="search" placeholder="Search by name or student ID..." oninput="renderCards()">
+        <input id="searchInput" type="search" placeholder="Search by name or student ID..." oninput="handleSearch()">
       </label>
       <button class="primary-button bulk" id="sendBulkBtn" onclick="sendApprovedEmails()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
@@ -122,8 +126,21 @@
       </button>
     </div>
 
-    <!-- Student Cards Grid -->
-    <section class="review-grid" id="cardsGrid"></section>
+    <!-- Student table -->
+    <section class="review-table-wrap" id="cardsGrid" aria-label="Student submissions"></section>
+
+    <!-- Request activity logs -->
+    <section class="activity-log-wrap hidden" id="activityLogPanel" aria-label="Activity logs">
+      <div class="activity-log-note">Every request is recorded locally without request bodies, cookies, or upload tokens.</div>
+      <div class="activity-log-scroll">
+        <table class="activity-log-table">
+          <thead>
+            <tr><th>Time</th><th>Method</th><th>Route</th><th>Status</th><th>Admin</th><th>Duration</th></tr>
+          </thead>
+          <tbody id="activityLogBody"></tbody>
+        </table>
+      </div>
+    </section>
 
     <!-- Empty State -->
     <div class="empty hidden" id="emptyState">
@@ -285,13 +302,31 @@
 ]</pre>
       <p class="import-help-note">Duplicate student IDs are skipped. Imported students remain reference-only until they submit their photo and signature through the student upload portal.</p>
     </div>
-    <button class="primary-button modal-submit" onclick="closeModal('importHelpModal')">Close</button>
+  </div>
+</div>
+
+<!-- ID preview modal -->
+<div class="modal-backdrop hidden" id="idPreviewModal">
+  <div class="modal id-preview-modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('idPreviewModal')" aria-label="Close ID preview">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <div class="id-preview-heading">
+      <div>
+        <span class="modal-kicker">LIVE DOCUMENT PREVIEW</span>
+        <h2 id="idPreviewTitle">Temporary ID</h2>
+      </div>
+      <a class="outline-button" id="idPreviewOpenLink" href="#" target="_blank" rel="noopener">Open full preview</a>
+    </div>
+    <iframe id="idPreviewFrame" title="Temporary ID preview"></iframe>
   </div>
 </div>
 
 <script>
 let students = [];
+let activityLogs = [];
 let currentFilter = 'PENDING_REVIEW';
+let currentView = 'students';
 let currentSort = 'newest';
 let activeStudentId = null;
 let selectedIds = new Set();
@@ -317,6 +352,7 @@ const icons = {
   x: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>',
   refresh: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.8-4L3 10"/><path d="M3 5v5h5"/><path d="M4 13a8 8 0 0 0 14.8 4L21 14"/><path d="M21 19v-5h-5"/></svg>',
   download: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>',
+  eye: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>',
   edit: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>',
   mail: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
 };
@@ -332,7 +368,7 @@ async function loadStudents({ silent = false } = {}) {
       return;
     }
     if (res.status === 304) {
-      renderCards();
+      if (currentView === 'students') renderCards();
       updateCounts();
       return;
     }
@@ -341,7 +377,7 @@ async function loadStudents({ silent = false } = {}) {
       throw new Error(data?.error || `Student request failed (${res.status})`);
     }
     students = data;
-    renderCards();
+    if (currentView === 'students') renderCards();
     updateCounts();
   } catch (err) {
     if (!silent) showToast('Failed to load students', true);
@@ -388,8 +424,13 @@ function triggerStudentImport() {
 
 async function refreshDashboard() {
   closeDropdowns();
-  await loadStudents();
-  showToast('Submissions refreshed.');
+  if (currentView === 'logs') {
+    await loadActivityLogs();
+    showToast('Activity logs refreshed.');
+  } else {
+    await loadStudents();
+    showToast('Submissions refreshed.');
+  }
 }
 
 function csvEscape(value) {
@@ -424,6 +465,11 @@ function openImportHelp() {
   openModal('importHelpModal');
 }
 
+function handleSearch() {
+  if (currentView === 'logs') renderActivityLogs();
+  else renderCards();
+}
+
 function showToast(msg, isError = false) {
   const toast = document.getElementById('toast');
   document.getElementById('toastMsg').textContent = msg;
@@ -435,6 +481,10 @@ function showToast(msg, isError = false) {
 
 // ── Filter/Search ──────────────────────────────────────────
 function setFilter(filter) {
+  currentView = 'students';
+  document.getElementById('cardsGrid').classList.remove('hidden');
+  document.getElementById('activityLogPanel').classList.add('hidden');
+  document.getElementById('sendBulkBtn').style.display = 'inline-flex';
   currentFilter = filter;
   const navMap = {
     all: 'navAll',
@@ -454,6 +504,76 @@ function setActiveNav(id) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.id === id));
 }
 
+async function showActivityLogs() {
+  currentView = 'logs';
+  setActiveNav('navLogs');
+  document.querySelector('.dashboard-header h1').textContent = 'Activity logs';
+  document.getElementById('listTitle').textContent = 'Request activity';
+  document.getElementById('cardsGrid').classList.add('hidden');
+  document.getElementById('emptyState').classList.add('hidden');
+  document.getElementById('activityLogPanel').classList.remove('hidden');
+  document.getElementById('sendBulkBtn').style.display = 'none';
+  document.getElementById('bulkApproveBtn').style.display = 'none';
+  await loadActivityLogs();
+}
+
+async function loadActivityLogs({ silent = false } = {}) {
+  try {
+    const res = await fetch('/admin/api/logs?limit=250');
+    if (res.status === 401 || res.status === 403) {
+      window.location.href = '/admin/login';
+      return;
+    }
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !Array.isArray(data)) throw new Error(data?.error || 'Activity log request failed.');
+    activityLogs = data;
+    renderActivityLogs();
+  } catch (err) {
+    if (!silent) showToast(err.message || 'Failed to load activity logs.', true);
+  }
+}
+
+function renderActivityLogs() {
+  const body = document.getElementById('activityLogBody');
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const visible = activityLogs.filter(log => !query || [
+    log.method, log.route, log.status, log.admin || 'anonymous', log.ip,
+  ].join(' ').toLowerCase().includes(query));
+  visible.sort((a, b) => {
+    const timeA = Date.parse(a.timestamp || '') || 0;
+    const timeB = Date.parse(b.timestamp || '') || 0;
+    return currentSort === 'newest' ? timeB - timeA : timeA - timeB;
+  });
+
+  document.getElementById('recordCount').textContent = `${visible.length} event${visible.length !== 1 ? 's' : ''}`;
+  body.innerHTML = visible.length
+    ? visible.map(log => `
+      <tr>
+        <td class="log-time">${escapeHtml(formatLogTime(log.timestamp))}</td>
+        <td><span class="log-method method-${String(log.method || '').toLowerCase()}">${escapeHtml(log.method || '—')}</span></td>
+        <td><code>${escapeHtml(log.route || '—')}</code></td>
+        <td><span class="log-status ${Number(log.status) >= 400 ? 'is-error' : 'is-ok'}">${escapeHtml(log.status ?? '—')}</span></td>
+        <td>${escapeHtml(log.admin || 'Anonymous')}</td>
+        <td>${escapeHtml(`${log.durationMs ?? 0} ms`)}</td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" class="log-empty">No activity matches your search.</td></tr>';
+}
+
+function formatLogTime(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'Unknown time' : date.toLocaleString();
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
+  }[char]));
+}
+
+function jsString(value) {
+  return JSON.stringify(String(value)).replace(/</g, '\\u003c').replace(/'/g, '&#39;');
+}
+
 function setFilterBtn(btn, filter) {
   document.querySelectorAll('.filter').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
@@ -469,7 +589,16 @@ function toggleSort() {
     currentSort = 'newest';
     btn.innerHTML = `Newest first <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 10 5 5 5-5"/></svg>`;
   }
-  renderCards();
+  if (currentView === 'logs') renderActivityLogs();
+  else renderCards();
+}
+
+function studentTimestamp(student) {
+  for (const value of [student.updatedAt, student.submittedAt, student.createdAt, student.generatedDate]) {
+    const timestamp = Date.parse(value || '');
+    if (!Number.isNaN(timestamp)) return timestamp;
+  }
+  return 0;
 }
 
 function getVisible() {
@@ -492,9 +621,13 @@ function getVisible() {
   });
 
   filtered.sort((a, b) => {
-    const dA = new Date(a.generatedDate || '2000-01-01').getTime();
-    const dB = new Date(b.generatedDate || '2000-01-01').getTime();
-    return currentSort === 'newest' ? dB - dA : dA - dB;
+    const dateDifference = studentTimestamp(b) - studentTimestamp(a);
+    if (dateDifference !== 0) return currentSort === 'newest' ? dateDifference : -dateDifference;
+
+    // Records imported on the same day still need a visible, deterministic
+    // order when they do not yet have individual timestamps.
+    const indexDifference = students.indexOf(b) - students.indexOf(a);
+    return currentSort === 'newest' ? indexDifference : -indexDifference;
   });
 
   return filtered;
@@ -538,80 +671,66 @@ function assetHtml(s, isSignature) {
   </div>`;
 }
 
-// ── Render student cards ───────────────────────────────────
+function openIdPreview(studentId) {
+  const student = students.find(s => s.studentId === studentId);
+  if (!student || !(student.photoUrl && student.signatureUrl)) return;
+
+  const previewUrl = `/id-card/${encodeURIComponent(studentId)}`;
+  document.getElementById('idPreviewTitle').textContent = `${student.fullName} · Temporary ID`;
+  document.getElementById('idPreviewOpenLink').href = previewUrl;
+  document.getElementById('idPreviewFrame').src = `${previewUrl}?preview=${Date.now()}`;
+  openModal('idPreviewModal');
+}
+
+// ── Render student table ──────────────────────────────────
 function renderCards() {
   const visible = getVisible();
-  const grid = document.getElementById('cardsGrid');
+  const table = document.getElementById('cardsGrid');
   const empty = document.getElementById('emptyState');
   document.getElementById('recordCount').textContent = `${visible.length} record${visible.length !== 1 ? 's' : ''}`;
 
   if (visible.length === 0) {
-    grid.innerHTML = '';
+    table.innerHTML = '';
     empty.classList.remove('hidden');
     return;
   }
   empty.classList.add('hidden');
 
-  grid.innerHTML = visible.map(s => {
+  table.innerHTML = `<div class="review-table-scroll">
+    <table class="review-table">
+      <thead>
+        <tr><th class="select-column">Select</th><th>Student</th><th>Course</th><th>Recipient</th><th>Submitted</th><th>Expires</th><th>Status</th><th class="actions-column">Actions</th></tr>
+      </thead>
+      <tbody>${visible.map(s => {
     const isReviewable = s.approvalStatus === 'PENDING_REVIEW' && s.renewalStatus !== 'RENEWAL_REQUESTED';
     const isRenewal = s.renewalStatus === 'RENEWAL_REQUESTED';
     const isApproved = s.approvalStatus === 'APPROVED';
     const hasSubmittedAssets = Boolean(s.photoUrl && s.signatureUrl);
     const displayEmail = s.overrideEmail || s.email;
     const isSelected = selectedIds.has(s.studentId);
+    const idArg = jsString(s.studentId);
 
     return `
-    <article class="review-card" data-id="${s.studentId}">
-      <div class="card-top">
-        ${isReviewable ? `<input type="checkbox" class="bulk-cb" data-id="${s.studentId}" onchange="toggleSelect('${s.studentId}', this.checked)" ${isSelected ? 'checked' : ''} title="Select for bulk approve">` : '<span style="width:18px"></span>'}
-        ${statusBadge(s)}
-        <div class="more-wrap" style="position:relative;margin-left:auto">
-          <button class="more-button" aria-label="More options for ${s.fullName}" onclick="toggleDropdown('dd-${s.studentId}', event)">
-            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
-          </button>
-          <div class="dropdown hidden" id="dd-${s.studentId}">
-            ${hasSubmittedAssets ? `<button onclick="window.open('/id-card/${s.studentId}','_blank');closeDropdowns()">👁 View ID Preview</button>` : ''}
-            ${isReviewable ? `<button onclick="approveStudent('${s.studentId}', this);closeDropdowns()">Approve</button>` : ''}
-            ${isReviewable ? `<button onclick="openRejectModal('${s.studentId}');closeDropdowns()">Reject</button>` : ''}
-            ${hasSubmittedAssets ? `<button onclick="downloadDocument('${s.studentId}', this);closeDropdowns()">📄 Download PDF</button>` : ''}
-            ${isApproved ? `<button onclick="sendEmail('${s.studentId}');closeDropdowns()">✉ Send Email</button>` : ''}
-          </div>
-        </div>
-      </div>
-
-      <div class="assets">
-        ${assetHtml(s, false)}
-        ${assetHtml(s, true)}
-        <div class="asset-labels"><span>PHOTO</span><span>SIGNATURE</span></div>
-        <div class="qr-wrap">${qrPreviewHtml(s)}<small>RENEWAL QR</small></div>
-      </div>
-
-      <div class="student-info">
-        <div>
-          <span class="student-id">${s.studentId}</span>
-          <h3>${s.fullName}</h3>
-          <p>${s.course}</p>
-        </div>
-        <div class="expiry">
-          <small>EXPIRES</small>
-          <strong>${s.temporaryExpiryDate}</strong>
-        </div>
-      </div>
-
-      <div class="recipient">
-        ${icons.mail}
-        <span title="${displayEmail}">${displayEmail}</span>
-        <button onclick="openEmailModal('${s.studentId}')" aria-label="Edit recipient email" title="Edit recipient email">${icons.edit}</button>
-      </div>
-
-      <div class="card-actions">
-        ${isReviewable ? `<button class="approve-button" onclick="approveStudent('${s.studentId}', this)">${icons.check} Approve</button>` : ''}
-        ${isRenewal ? `<button class="renew-button" onclick="openRenewalModal('${s.studentId}')">${icons.refresh} Extend</button>` : ''}
-        ${isReviewable ? `<button class="reject-button" onclick="openRejectModal('${s.studentId}')">${icons.x} Reject</button>` : ''}
-        ${hasSubmittedAssets ? `<button class="download-button" onclick="downloadDocument('${s.studentId}', this)" title="Download PDF">${icons.download}</button>` : ''}
-      </div>
-    </article>`;
-  }).join('');
+    <tr class="review-row">
+      <td class="select-column">${isReviewable ? `<input type="checkbox" class="bulk-cb" data-id="${escapeHtml(s.studentId)}" onchange='toggleSelect(${idArg}, this.checked)' ${isSelected ? 'checked' : ''} title="Select for bulk approve">` : '<span class="table-dash">—</span>'}</td>
+      <td class="student-cell"><strong>${escapeHtml(s.fullName)}</strong><small>${escapeHtml(s.studentId)}</small></td>
+      <td>${escapeHtml(s.course || '—')}</td>
+      <td class="recipient-cell"><span title="${escapeHtml(displayEmail)}">${escapeHtml(displayEmail || '—')}</span><button class="table-icon-button" onclick='event.stopPropagation();openEmailModal(${idArg})' aria-label="Edit recipient email" title="Edit recipient email">${icons.edit}</button></td>
+      <td>${escapeHtml(s.generatedDate || '—')}</td>
+      <td>${escapeHtml(s.temporaryExpiryDate || '—')}</td>
+      <td>${statusBadge(s)}</td>
+      <td class="table-actions">
+        ${hasSubmittedAssets ? `<button class="table-action preview-action" onclick='event.stopPropagation();openIdPreview(${idArg})' title="Preview ID">${icons.eye || 'Preview'}</button>` : ''}
+        ${isReviewable ? `<button class="table-action approve-action" onclick='event.stopPropagation();approveStudent(${idArg}, this)' title="Approve">${icons.check}</button>` : ''}
+        ${isRenewal ? `<button class="table-action renew-action" onclick='event.stopPropagation();openRenewalModal(${idArg})' title="Extend renewal">${icons.refresh}</button>` : ''}
+        ${isReviewable ? `<button class="table-action reject-action" onclick='event.stopPropagation();openRejectModal(${idArg})' title="Reject">${icons.x}</button>` : ''}
+        ${hasSubmittedAssets ? `<button class="table-action download-action" onclick='event.stopPropagation();downloadDocument(${idArg}, this)' title="Download PDF">${icons.download}</button>` : ''}
+        ${isApproved ? `<button class="table-action email-action" onclick='event.stopPropagation();sendEmail(${idArg})' title="Send email">${icons.mail}</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('')}</tbody>
+    </table>
+  </div>`;
 
   updateCounts();
 }
@@ -886,6 +1005,7 @@ function openModal(id) {
 }
 
 function closeModal(id) {
+  if (id === 'idPreviewModal') document.getElementById('idPreviewFrame').src = 'about:blank';
   document.getElementById(id).classList.add('hidden');
   document.body.style.overflow = '';
   activeStudentId = null;

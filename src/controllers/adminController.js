@@ -14,6 +14,7 @@ import { populateStudentDocument } from '../services/documentService.js';
 import { processBulkEmailQueue, sendStudentEmail } from '../services/emailService.js';
 import { importStudentsFromFile } from '../services/studentImportService.js';
 import { PUBLIC_BASE_URL } from '../config/env.js';
+import { getRequestLogs } from '../services/logService.js';
 
 export function getDashboard(req, res) {
   res.sendFile(path.join(process.cwd(), 'src', 'views', 'adminDashboard.html'));
@@ -23,6 +24,11 @@ export function listStudents(req, res) {
   res.set('Cache-Control', 'no-store');
   const students = getAllStudents();
   res.json(students);
+}
+
+export function listRequestLogs(req, res) {
+  res.set('Cache-Control', 'no-store');
+  res.json(getRequestLogs(req.query.limit));
 }
 
 export function getStudent(req, res) {

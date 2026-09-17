@@ -9,6 +9,7 @@ import cookieParser from 'cookie-parser';
 import { PORT } from './src/config/env.js';
 import { requireAdminAuth } from './src/middleware/auth.js';
 import { intranetOnly } from './src/middleware/intranet.js';
+import { requestLogger } from './src/middleware/requestLogger.js';
 import authRoutes from './src/routes/authRoutes.js';
 import adminRoutes from './src/routes/adminRoutes.js';
 import studentRoutes from './src/routes/studentRoutes.js';
@@ -32,6 +33,7 @@ dirs.forEach(dir => {
 });
 
 const app = express();
+app.use(requestLogger);
 
 // Trust proxy for accurate IP detection
 app.set('trust proxy', 1);

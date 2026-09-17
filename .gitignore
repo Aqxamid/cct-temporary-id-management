@@ -23,6 +23,9 @@ public/images/president_signature.*
 # Local tunnel credentials/configuration
 .cloudflared/
 
+# Application request logs
+logs/
+
 # ─── Logs ────────────────────────────────────────────────────────────────────
 *.log
 npm-debug.log*

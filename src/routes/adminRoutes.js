@@ -18,6 +18,7 @@ import {
   addStudent,
   importStudents,
   removeStudent,
+  listRequestLogs,
 } from '../controllers/adminController.js';
 
 const router = Router();
@@ -31,6 +32,7 @@ router.get('/dashboard', getDashboard);
 
 // Student CRUD API
 router.get('/api/students', listStudents);
+router.get('/api/logs', listRequestLogs);
 router.get('/api/students/:studentId', getStudent);
 router.post('/api/students', addStudent);
 router.delete('/api/students/:studentId', removeStudent);

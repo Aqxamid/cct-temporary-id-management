@@ -48,7 +48,7 @@ export function updateStudent(studentId, updates) {
   const students = readDB();
   const idx = students.findIndex(s => s.studentId === studentId);
   if (idx === -1) return null;
-  students[idx] = { ...students[idx], ...updates };
+  students[idx] = { ...students[idx], ...updates, updatedAt: new Date().toISOString() };
   writeDB(students);
   return students[idx];
 }
@@ -63,17 +63,29 @@ export function updateStudentExpiry(studentId, newExpiryDate) {
 
 export function createStudent(studentData) {
   const students = readDB();
-  students.push(studentData);
+  const timestamp = new Date().toISOString();
+  const record = {
+    ...studentData,
+    createdAt: studentData.createdAt || timestamp,
+    updatedAt: studentData.updatedAt || timestamp,
+  };
+  students.push(record);
   writeDB(students);
-  return studentData;
+  return record;
 }
 
 export function createStudents(studentData) {
   if (!Array.isArray(studentData) || studentData.length === 0) return [];
   const students = readDB();
-  students.push(...studentData);
+  const timestamp = new Date().toISOString();
+  const records = studentData.map(student => ({
+    ...student,
+    createdAt: student.createdAt || timestamp,
+    updatedAt: student.updatedAt || timestamp,
+  }));
+  students.push(...records);
   writeDB(students);
-  return studentData;
+  return records;
 }
 
 export function deleteStudent(studentId) {
