@@ -1,0 +1,1462 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student ID Management</title>
+  <meta name="description" content="Intranet admin dashboard for reviewing, approving, and managing temporary student ID submissions.">
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <link rel="icon" href="/favicon.ico" type="image/png">
+</head>
+<body>
+
+<div class="admin-shell">
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <img src="/public/images/logo_seal.png" class="brand-mark" alt="Logo">
+      <span class="brand-text">
+        <strong>City College of Tagaytay</strong>
+        <small>Temporary ID Admin</small>
+      </span>
+    </div>
+    <button class="collapse-button" id="collapseBtn" aria-label="Collapse navigation" onclick="toggleSidebar()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <nav>
+      <p class="nav-label" id="navLabel">REVIEW QUEUE</p>
+      <button class="nav-item active" id="navPending" onclick="setFilter('PENDING_REVIEW')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg>
+        <span>Pending approvals <b id="pendingCount">0</b></span>
+      </button>
+      <button class="nav-item" id="navRenewal" onclick="setFilter('RENEWAL_REQUESTED')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.8-4L3 10"/><path d="M3 5v5h5"/><path d="M4 13a8 8 0 0 0 14.8 4L21 14"/><path d="M21 19v-5h-5"/></svg>
+        <span>Renewal queue <b id="renewalCount">0</b></span>
+      </button>
+
+      <p class="nav-label nav-label-spaced" id="navLabelRecords">RECORDS</p>
+      <button class="nav-item" id="navAll" onclick="setFilter('all')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 6h12M8 12h12M8 18h12"/><path d="M4 6h.01M4 12h.01M4 18h.01"/></svg>
+        <span>All submissions</span>
+      </button>
+      <button class="nav-item" id="navApproved" onclick="setFilter('APPROVED')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+        <span>Approved IDs <b id="approvedTotalCount">0</b></span>
+      </button>
+      <button class="nav-item" id="navSent" onclick="setFilter('SENT')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        <span>Email logs</span>
+      </button>
+
+      <p class="nav-label nav-label-spaced" id="navLabelSystem">SYSTEM</p>
+      <button class="nav-item" id="navLogs" onclick="showActivityLogs()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5h16M4 12h16M4 19h10"/><circle cx="19" cy="19" r="2"/></svg>
+        <span>Activity logs</span>
+      </button>
+      <button class="nav-item" id="navSettings" onclick="openGlobalSettings()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+        <span>Global Settings</span>
+      </button>
+    </nav>
+    <div class="sidebar-bottom" id="sidebarBottom">
+      <div class="user-row">
+        <span class="avatar" id="adminAvatar">…</span>
+        <span>
+          <strong id="adminFullName">Loading…</strong>
+          <small id="adminRole">Administrator</small>
+        </span>
+        <button class="icon-button" onclick="logout()" title="Logout" style="margin-left:auto; padding:5px; border-radius:4px;">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="dashboard-main">
+    <header class="dashboard-header">
+      <div>
+        <h1>Pending approvals</h1>
+        <p class="subheading">Review submitted photos and signatures before issuing temporary IDs.</p>
+      </div>
+      <div class="header-actions">
+        <a href="/upload" target="_blank" class="portal-link" id="portalLink">View student portal
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+        </a>
+        <button class="primary-button" id="bulkApproveBtn" style="display:none" onclick="bulkApprove()">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 4 4L19 6"/></svg>
+          Approve Selected (<span id="bulkCount">0</span>)
+        </button>
+        <div class="more-wrap header-more">
+          <button class="icon-button" aria-label="More options" onclick="toggleDropdown('headerOptions', event)">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="5" cy="12" r="1"/><circle cx="12" cy="12" r="1"/><circle cx="19" cy="12" r="1"/></svg>
+          </button>
+          <div class="dropdown hidden" id="headerOptions">
+            <button onclick="refreshDashboard()">Refresh submissions</button>
+            <button onclick="exportVisibleStudents()">Export visible records</button>
+            <button id="importStudentsMenuBtn" onclick="triggerStudentImport()">Import students</button>
+            <button onclick="openImportHelp();closeDropdowns()">Import format help</button>
+          </div>
+        </div>
+        <input id="studentImportInput" type="file" accept=".csv,text/csv" hidden onchange="importStudents(this)">
+      </div>
+    </header>
+
+    <!-- Toolbar -->
+    <section class="toolbar">
+      <label class="search">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="6.5"/><path d="m16 16 4 4"/></svg>
+        <input id="searchInput" type="search" placeholder="Search by name or student ID..." oninput="handleSearch()">
+      </label>
+      <button class="primary-button bulk hidden" id="sendBulkBtn" onclick="sendApprovedEmails()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+        Generate &amp; send approved IDs <span class="button-count" id="approvedCount">0</span>
+      </button>
+    </section>
+
+    <!-- Toast -->
+    <div class="toast hidden" id="toast">
+      <span class="toast-check">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>
+      </span>
+      <span id="toastMsg"></span>
+    </div>
+
+    <!-- List Heading -->
+    <div class="list-heading">
+      <div>
+        <h2 id="listTitle">Pending approvals</h2>
+        <span id="recordCount">0 records</span>
+      </div>
+      <button class="sort-button" onclick="toggleSort()" id="sortBtn">Newest first
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 10 5 5 5-5"/></svg>
+      </button>
+    </div>
+
+    <!-- Student table -->
+    <section class="review-table-wrap" id="cardsGrid" aria-label="Student submissions"></section>
+
+    <!-- System activity logs -->
+    <section class="activity-log-wrap hidden" id="activityLogPanel" aria-label="Activity logs">
+      <div class="activity-log-note">Every system interaction is recorded: approvals, rejections, imports, document generation, email dispatch, renewals, settings changes and sign-ins.</div>
+      <div class="activity-log-scroll">
+        <table class="activity-log-table">
+          <thead>
+            <tr><th>Time</th><th>Action</th><th>Details</th><th>Student</th><th>Admin</th><th>Status</th></tr>
+          </thead>
+          <tbody id="activityLogBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Empty State -->
+    <div class="empty hidden" id="emptyState">
+      <h2>No submissions found</h2>
+      <p>Try adjusting your search or status filter.</p>
+    </div>
+  </main>
+</div>
+
+<!-- Email Override Modal -->
+<div class="modal-backdrop hidden" id="emailModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('emailModal')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <span class="modal-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+    </span>
+    <h2>Update recipient email</h2>
+    <p class="modal-copy">Use a personal address if the institutional inbox is locked.</p>
+    <label class="modal-label">
+      Recipient email
+      <input type="email" id="emailInput" placeholder="student@example.com" onkeydown="if(event.key==='Enter'){event.preventDefault();saveEmail();}">
+    </label>
+    <button class="primary-button modal-submit" id="saveEmailBtn" onclick="saveEmail()">Save email</button>
+    <p class="modal-hint">Press <kbd>Enter</kbd> to save · <kbd>Esc</kbd> to cancel</p>
+  </div>
+</div>
+
+<!-- Renewal Modal -->
+<div class="modal-backdrop hidden" id="renewalModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('renewalModal')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <span class="modal-icon amber">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.8-4L3 10"/><path d="M3 5v5h5"/><path d="M4 13a8 8 0 0 0 14.8 4L21 14"/><path d="M21 19v-5h-5"/></svg>
+    </span>
+    <h2>Extend temporary ID</h2>
+    <p class="modal-copy">Set a new expiry extension for <strong id="renewalStudentName"></strong>'s temporary ID.</p>
+    <label class="modal-label">
+      Extension period
+      <select id="renewalDays">
+        <option value="30">30 days</option>
+        <option value="60">60 days</option>
+        <option value="90">90 days</option>
+      </select>
+    </label>
+    <button class="primary-button modal-submit" onclick="saveRenewal()">Save and approve</button>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal-backdrop hidden" id="rejectModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('rejectModal')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <span class="modal-icon red-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </span>
+    <h2>Reject submission?</h2>
+    <p class="modal-copy">Let <strong id="rejectStudentName"></strong> know what needs to be updated before resubmitting.</p>
+    <label class="modal-label">
+      Reason
+      <textarea id="rejectReason" placeholder="Add a short reason..."></textarea>
+    </label>
+    <button class="reject-full" onclick="saveReject()">Reject submission</button>
+  </div>
+</div>
+
+<!-- Global Settings Modal -->
+<div class="modal-backdrop hidden" id="settingsModal">
+  <div class="modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('settingsModal')">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <span class="modal-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+    </span>
+    <h2>Global Settings</h2>
+    <div class="modal-body">
+    <p class="modal-copy" style="margin-bottom:8px"><strong>Authorized MIS Signer</strong></p>
+    <label class="modal-label">
+      Name
+      <input type="text" id="signerNameInput" placeholder="Joel Mari J. Alcala">
+    </label>
+    <label class="modal-label" style="margin-top:8px">
+      Role / Position
+      <input type="text" id="signerRoleInput" placeholder="MIS Officer">
+    </label>
+    <label class="modal-label" style="margin-top:8px; margin-bottom:16px">
+      Organization
+      <input type="text" id="signerOrgInput" placeholder="City College of Tagaytay">
+    </label>
+    
+    <p class="modal-copy" style="margin-bottom:8px"><strong>College President</strong></p>
+    <label class="modal-label">
+      Name
+      <input type="text" id="presidentNameInput" placeholder="Celso P. De Castro">
+    </label>
+    <label class="modal-label" style="margin-top:8px">
+      Title
+      <input type="text" id="presidentTitleInput" placeholder="College President">
+    </label>
+    <label class="modal-label" style="margin-top:8px">
+      College President signature
+    </label>
+    <div class="signature-editor">
+      <div class="signature-tabs">
+        <button type="button" class="signature-tab active" id="presSigDrawTab" onclick="setPresidentSignatureMode('draw')">Draw e-signature</button>
+        <button type="button" class="signature-tab" id="presSigUploadTab" onclick="setPresidentSignatureMode('upload')">Upload image</button>
+      </div>
+      <canvas id="presidentSignatureCanvas" width="620" height="190" aria-label="College President signature pad"></canvas>
+      <div class="signature-upload-panel hidden" id="presSigUploadPanel">
+        <button type="button" class="outline-button" onclick="triggerPresidentSigUpload()">Choose signature image</button>
+        <input type="file" id="presidentSigUpload" accept="image/*" style="display:none" onchange="handlePresidentSigFile(this)">
+        <img id="presidentSigPreview" class="president-sig-preview" alt="Signature preview">
+      </div>
+      <div class="signature-editor-footer">
+        <small>White background is removed and only the signature is saved.</small>
+        <button type="button" class="clear-button" onclick="clearPresidentSignature()">Clear</button>
+      </div>
+    </div>
+    </div>
+    
+    <button class="primary-button modal-submit" id="saveSettingsBtn" onclick="saveGlobalSettings()">Save settings</button>
+  </div>
+</div>
+
+<!-- Import Help Modal -->
+<div class="modal-backdrop hidden" id="importHelpModal">
+  <div class="modal import-help-modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('importHelpModal')" aria-label="Close import help">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <span class="modal-icon">?</span>
+    <h2>Import students</h2>
+    <p class="modal-copy">Upload a CSV file containing student reference data. CSV is the only supported import format.</p>
+    <div class="import-help-content">
+      <strong>Required fields</strong>
+      <code>studentId, fullName, email</code>
+      <strong>Optional fields</strong>
+      <p>dob, course, programStartDate, enrollmentStatus, guardianName, address, phone</p>
+      <strong>ID expiry</strong>
+      <p>The temporary ID expiry is generated automatically: every imported student receives <b>one year of validity</b> from the import date. Do not add an expiry column.</p>
+      <strong>Format</strong>
+      <p>The first row must contain headers. Headers are case-insensitive and spaces are ignored (e.g. <code>Student ID</code> = <code>studentId</code>).</p>
+      <strong>CSV sample</strong>
+      <pre class="import-sample">studentId,fullName,email,course,programStartDate,guardianName,address,phone
+2026011827,Juan dela Cruz,juan.delacruz@example.com,BSIT,2026-08-15,Maria dela Cruz,"Tagaytay City, Cavite",09123456789</pre>
+      <p class="import-help-note">Duplicate student IDs are skipped. Imported students remain reference-only until they submit their photo, signature and guardian details through the student upload portal.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Email progress modal -->
+<div class="modal-backdrop hidden" id="emailProgressModal">
+  <div class="modal email-progress-modal" onclick="event.stopPropagation()">
+    <span class="modal-icon">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>
+    </span>
+    <h2 id="emailProgressTitle">Sending temporary IDs</h2>
+    <p class="modal-copy" id="emailProgressCopy">Preparing the email queue…</p>
+    <div class="progress-track" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="emailProgressBarWrap">
+      <div class="progress-fill" id="emailProgressFill" style="width:0%"></div>
+    </div>
+    <div class="progress-meta">
+      <span id="emailProgressCount">0 / 0</span>
+      <span id="emailProgressPercent">0%</span>
+    </div>
+    <ul class="progress-list" id="emailProgressList"></ul>
+    <button class="primary-button modal-submit" id="emailProgressClose" onclick="closeModal('emailProgressModal')" disabled>Done</button>
+  </div>
+</div>
+
+<!-- ID preview modal -->
+<div class="modal-backdrop hidden" id="idPreviewModal">
+  <div class="modal id-preview-modal" onclick="event.stopPropagation()">
+    <button class="modal-close" onclick="closeModal('idPreviewModal')" aria-label="Close ID preview">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>
+    </button>
+    <div class="id-preview-heading">
+      <div>
+        <span class="modal-kicker">LIVE DOCUMENT PREVIEW</span>
+        <h2 id="idPreviewTitle">Temporary ID</h2>
+      </div>
+      <a class="outline-button" id="idPreviewOpenLink" href="#" target="_blank" rel="noopener">Open full preview</a>
+    </div>
+    <iframe id="idPreviewFrame" title="Temporary ID preview"></iframe>
+  </div>
+</div>
+
+<script>
+let students = [];
+let activityLogs = [];
+let currentFilter = 'PENDING_REVIEW';
+let currentView = 'students';
+let currentSort = 'newest';
+let activeStudentId = null;
+let selectedIds = new Set();
+let studentsLoading = false;
+
+// ── Load admin info ──────────────────────────────────────────
+async function loadAdminInfo() {
+  try {
+    const res = await fetch('/admin/api/me');
+    if (!res.ok) return;
+    const admin = await res.json();
+    const name = admin.fullName || 'MIS Administrator';
+    document.getElementById('adminFullName').textContent = name;
+    document.getElementById('adminRole').textContent = (admin.role || '').replace(/_/g, ' ');
+    const initials = name.split(' ').map(w => w[0]).slice(0, 2).join('').toUpperCase();
+    document.getElementById('adminAvatar').textContent = initials || 'MIS';
+  } catch (_) {}
+}
+
+// ── SVG Icons ─────────────────────────────────────────────
+const icons = {
+  check: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>',
+  x: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>',
+  refresh: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.8-4L3 10"/><path d="M3 5v5h5"/><path d="M4 13a8 8 0 0 0 14.8 4L21 14"/><path d="M21 19v-5h-5"/></svg>',
+  download: '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>',
+  eye: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-6 10-6 10 6 10 6-3.5 6-10 6-10-6-10-6Z"/><circle cx="12" cy="12" r="2.5"/></svg>',
+  edit: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L8 18l-4 1 1-4Z"/></svg>',
+  mail: '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+};
+
+// ── Load students from API ─────────────────────────────────
+async function loadStudents({ silent = false } = {}) {
+  if (studentsLoading) return;
+  studentsLoading = true;
+  try {
+    const res = await fetch('/admin/api/students');
+    if (res.status === 401 || res.status === 403) {
+      window.location.href = '/admin/login';
+      return;
+    }
+    if (res.status === 304) {
+      if (currentView === 'students') renderCards();
+      updateCounts();
+      return;
+    }
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !Array.isArray(data)) {
+      throw new Error(data?.error || `Student request failed (${res.status})`);
+    }
+    students = data;
+    if (currentView === 'students') renderCards();
+    updateCounts();
+  } catch (err) {
+    if (!silent) showToast('Failed to load students', true);
+  } finally {
+    studentsLoading = false;
+  }
+}
+
+// ── Toast ──────────────────────────────────────────────────
+async function importStudents(input) {
+  const file = input.files?.[0];
+  if (!file) return;
+
+  const button = document.getElementById('importStudentsMenuBtn');
+  const originalButton = button.innerHTML;
+  button.disabled = true;
+  button.innerHTML = '<span class="spinner spinner-dark"></span> Importing…';
+
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    const res = await fetch('/admin/api/students/import', {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.error || 'Student import failed.');
+
+    await loadStudents();
+    const invalidNote = data.invalid > 0 && data.invalidRecords?.length
+      ? ` First issue: row ${data.invalidRecords[0].row} — ${data.invalidRecords[0].errors.join(' ')}`
+      : '';
+    showToast(`Imported ${data.imported} student(s); skipped ${data.skipped} duplicate(s) and ${data.invalid} invalid row(s).${invalidNote}`, data.invalid > 0);
+  } catch (error) {
+    showToast(error.message || 'Student import failed.', true);
+  } finally {
+    input.value = '';
+    button.disabled = false;
+    button.innerHTML = originalButton;
+  }
+}
+
+function triggerStudentImport() {
+  closeDropdowns();
+  document.getElementById('studentImportInput').click();
+}
+
+async function refreshDashboard() {
+  closeDropdowns();
+  if (currentView === 'logs') {
+    await loadActivityLogs();
+    showToast('Activity logs refreshed.');
+  } else {
+    await loadStudents();
+    showToast('Submissions refreshed.');
+  }
+}
+
+function csvEscape(value) {
+  const text = String(value ?? '');
+  return /[",\r\n]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
+}
+
+function exportVisibleStudents() {
+  closeDropdowns();
+  const visible = getVisible();
+  if (visible.length === 0) {
+    showToast('There are no visible records to export.', true);
+    return;
+  }
+
+  const headers = ['studentId', 'fullName', 'email', 'course', 'programStartDate', 'temporaryExpiryDate', 'guardianName', 'address', 'phone', 'approvalStatus', 'renewalStatus'];
+  const rows = visible.map(student => headers.map(header => csvEscape(student[header])).join(','));
+  const csv = [headers.join(','), ...rows].join('\r\n');
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = `student_submissions_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  showToast(`${visible.length} visible record(s) exported.`);
+}
+
+function openImportHelp() {
+  openModal('importHelpModal');
+}
+
+function handleSearch() {
+  if (currentView === 'logs') renderActivityLogs();
+  else renderCards();
+}
+
+function showToast(msg, isError = false) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toastMsg').textContent = msg;
+  toast.classList.remove('hidden', 'error');
+  if (isError) toast.classList.add('error');
+  clearTimeout(window._toastTimer);
+  window._toastTimer = setTimeout(() => toast.classList.add('hidden'), 3500);
+}
+
+// ── Filter/Search ──────────────────────────────────────────
+const FILTER_META = {
+  PENDING_REVIEW: {
+    nav: 'navPending',
+    title: 'Pending approvals',
+    subtitle: 'Review submitted photos and signatures before issuing temporary IDs.',
+  },
+  RENEWAL_REQUESTED: {
+    nav: 'navRenewal',
+    title: 'Renewal queue',
+    subtitle: 'Students who scanned their ID QR code and requested an extension.',
+  },
+  all: {
+    nav: 'navAll',
+    title: 'All submissions',
+    subtitle: 'Every student who has submitted a photo and signature.',
+  },
+  APPROVED: {
+    nav: 'navApproved',
+    title: 'Approved IDs',
+    subtitle: 'Generate the temporary ID documents, then email them to students.',
+  },
+  SENT: {
+    nav: 'navSent',
+    title: 'Email logs',
+    subtitle: 'Temporary IDs that were emailed, including any failed deliveries.',
+  },
+};
+
+function setFilter(filter) {
+  currentView = 'students';
+  currentFilter = filter;
+  selectedIds.clear();
+  updateBulkApproveBtn();
+
+  document.getElementById('cardsGrid').classList.remove('hidden');
+  document.getElementById('activityLogPanel').classList.add('hidden');
+
+  // The bulk email action only makes sense in the Approved IDs section.
+  const sendBtn = document.getElementById('sendBulkBtn');
+  sendBtn.classList.toggle('hidden', filter !== 'APPROVED');
+
+  const meta = FILTER_META[filter] || FILTER_META.PENDING_REVIEW;
+  setActiveNav(meta.nav);
+  document.getElementById('listTitle').textContent = meta.title;
+  document.querySelector('.dashboard-header h1').textContent = meta.title;
+  const subheading = document.querySelector('.dashboard-header .subheading');
+  if (subheading) subheading.textContent = meta.subtitle;
+
+  renderCards();
+}
+
+function setActiveNav(id) {
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.toggle('active', n.id === id));
+}
+
+async function showActivityLogs() {
+  currentView = 'logs';
+  setActiveNav('navLogs');
+  document.querySelector('.dashboard-header h1').textContent = 'Activity logs';
+  document.getElementById('listTitle').textContent = 'System activity';
+  document.getElementById('cardsGrid').classList.add('hidden');
+  document.getElementById('emptyState').classList.add('hidden');
+  document.getElementById('activityLogPanel').classList.remove('hidden');
+  document.getElementById('sendBulkBtn').classList.add('hidden');
+  document.getElementById('bulkApproveBtn').style.display = 'none';
+  const subheading = document.querySelector('.dashboard-header .subheading');
+  if (subheading) subheading.textContent = 'Every approval, import, document generation, email dispatch and sign-in is recorded here.';
+  await loadActivityLogs();
+}
+
+async function loadActivityLogs({ silent = false } = {}) {
+  try {
+    const res = await fetch('/admin/api/logs?limit=250');
+    if (res.status === 401 || res.status === 403) {
+      window.location.href = '/admin/login';
+      return;
+    }
+    const data = await res.json().catch(() => null);
+    if (!res.ok || !Array.isArray(data)) throw new Error(data?.error || 'Activity log request failed.');
+    activityLogs = data;
+    renderActivityLogs();
+  } catch (err) {
+    if (!silent) showToast(err.message || 'Failed to load activity logs.', true);
+  }
+}
+
+function actionLabel(action) {
+  return String(action || 'UNKNOWN').replace(/_/g, ' ').toLowerCase().replace(/^./, c => c.toUpperCase());
+}
+
+function renderActivityLogs() {
+  const body = document.getElementById('activityLogBody');
+  const query = document.getElementById('searchInput').value.trim().toLowerCase();
+  const visible = activityLogs.filter(log => !query || [
+    log.action, log.description, log.studentId, log.admin || 'system', log.category, log.status,
+  ].join(' ').toLowerCase().includes(query));
+  visible.sort((a, b) => {
+    const timeA = Date.parse(a.timestamp || '') || 0;
+    const timeB = Date.parse(b.timestamp || '') || 0;
+    return currentSort === 'newest' ? timeB - timeA : timeA - timeB;
+  });
+
+  document.getElementById('recordCount').textContent = `${visible.length} event${visible.length !== 1 ? 's' : ''}`;
+  body.innerHTML = visible.length
+    ? visible.map(log => `
+      <tr>
+        <td class="log-time">${escapeHtml(formatLogTime(log.timestamp))}</td>
+        <td><span class="log-action action-${escapeHtml(String(log.category || 'system').toLowerCase())}">${escapeHtml(actionLabel(log.action))}</span></td>
+        <td class="log-description">${escapeHtml(log.description || '—')}${log.details ? `<small>${escapeHtml(log.details)}</small>` : ''}</td>
+        <td>${escapeHtml(log.studentId || '—')}</td>
+        <td>${escapeHtml(log.admin || 'System')}</td>
+        <td><span class="log-status ${log.status === 'error' ? 'is-error' : log.status === 'warning' ? 'is-warning' : 'is-ok'}">${escapeHtml(log.status || 'success')}</span></td>
+      </tr>`).join('')
+    : '<tr><td colspan="6" class="log-empty">No activity matches your search.</td></tr>';
+}
+
+function formatLogTime(value) {
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? 'Unknown time' : date.toLocaleString();
+}
+
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>'"]/g, char => ({
+    '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;',
+  }[char]));
+}
+
+function jsString(value) {
+  return JSON.stringify(String(value)).replace(/</g, '\\u003c').replace(/'/g, '&#39;');
+}
+
+function toggleSort() {
+  const btn = document.getElementById('sortBtn');
+  if (currentSort === 'newest') {
+    currentSort = 'oldest';
+    btn.innerHTML = `Oldest first <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 14 5-5 5 5"/></svg>`;
+  } else {
+    currentSort = 'newest';
+    btn.innerHTML = `Newest first <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m7 10 5 5 5-5"/></svg>`;
+  }
+  if (currentView === 'logs') renderActivityLogs();
+  else renderCards();
+}
+
+function studentTimestamp(student) {
+  for (const value of [student.updatedAt, student.submittedAt, student.createdAt, student.generatedDate]) {
+    const timestamp = Date.parse(value || '');
+    if (!Number.isNaN(timestamp)) return timestamp;
+  }
+  return 0;
+}
+
+function getVisible() {
+  const query = document.getElementById('searchInput').value.toLowerCase();
+  let filtered = students.filter(s => {
+    let matchFilter = true;
+    if (currentFilter === 'PENDING_REVIEW') {
+      // Awaiting review, and not part of the renewal queue.
+      matchFilter = s.approvalStatus === 'PENDING_REVIEW' && s.renewalStatus !== 'RENEWAL_REQUESTED';
+    } else if (currentFilter === 'RENEWAL_REQUESTED') {
+      matchFilter = s.renewalStatus === 'RENEWAL_REQUESTED';
+    } else if (currentFilter === 'APPROVED') {
+      // Only IDs still waiting to be generated/emailed. Once an ID has been
+      // sent it moves to Email logs and stays in All submissions, so it is
+      // never regenerated or re-emailed by the bulk action.
+      matchFilter = s.approvalStatus === 'APPROVED'
+        && s.renewalStatus !== 'RENEWAL_REQUESTED'
+        && s.emailStatus !== 'SENT';
+    } else if (currentFilter === 'SENT') {
+      matchFilter = s.emailStatus === 'SENT' || s.emailStatus === 'FAILED';
+    } else if (currentFilter === 'all') {
+      matchFilter = Boolean(s.photoUrl && s.signatureUrl);
+    }
+    const matchQuery = !query || `${s.fullName} ${s.studentId} ${s.email || ''} ${s.overrideEmail || ''}`.toLowerCase().includes(query);
+    return matchFilter && matchQuery;
+  });
+
+  filtered.sort((a, b) => {
+    const dateDifference = studentTimestamp(b) - studentTimestamp(a);
+    if (dateDifference !== 0) return currentSort === 'newest' ? dateDifference : -dateDifference;
+
+    // Records imported on the same day still need a visible, deterministic
+    // order when they do not yet have individual timestamps.
+    const indexDifference = students.indexOf(b) - students.indexOf(a);
+    return currentSort === 'newest' ? indexDifference : -indexDifference;
+  });
+
+  return filtered;
+}
+
+// ── Status badge HTML ──────────────────────────────────────
+function statusBadge(s) {
+  if (s.renewalStatus === 'RENEWAL_REQUESTED') return '<span class="status renewal"><i></i>Renewal Requested</span>';
+  if (s.approvalStatus === 'APPROVED') return '<span class="status approved"><i></i>Approved</span>';
+  if (s.approvalStatus === 'REJECTED') return '<span class="status rejected"><i></i>Rejected</span>';
+  if (s.approvalStatus === 'PENDING_UPLOAD') return '<span class="status pending-upload"><i></i>Pending Upload</span>';
+  return '<span class="status pending"><i></i>Pending Review</span>';
+}
+
+function openIdPreview(studentId) {
+  const student = students.find(s => s.studentId === studentId);
+  if (!student || !(student.photoUrl && student.signatureUrl)) return;
+
+  const previewUrl = `/id-card/${encodeURIComponent(studentId)}`;
+  document.getElementById('idPreviewTitle').textContent = `${student.fullName} · Temporary ID`;
+  document.getElementById('idPreviewOpenLink').href = previewUrl;
+  document.getElementById('idPreviewFrame').src = `${previewUrl}?preview=${Date.now()}`;
+  openModal('idPreviewModal');
+}
+
+// ── Render student table ──────────────────────────────────
+function renderCards() {
+  const visible = getVisible();
+  const table = document.getElementById('cardsGrid');
+  const empty = document.getElementById('emptyState');
+  document.getElementById('recordCount').textContent = `${visible.length} record${visible.length !== 1 ? 's' : ''}`;
+
+  if (visible.length === 0) {
+    table.innerHTML = '';
+    empty.classList.remove('hidden');
+    return;
+  }
+  empty.classList.add('hidden');
+
+  // The Select column is only useful where bulk approval is possible.
+  const showSelect = currentFilter === 'PENDING_REVIEW';
+
+  table.innerHTML = `<div class="review-table-scroll">
+    <table class="review-table">
+      <thead>
+        <tr>${showSelect ? '<th class="select-column">Select</th>' : ''}<th>Student</th><th>Course</th><th>Recipient</th><th>Submitted</th><th>Expires</th><th>Status</th><th class="actions-column">Actions</th></tr>
+      </thead>
+      <tbody>${visible.map(s => {
+    const isReviewable = s.approvalStatus === 'PENDING_REVIEW' && s.renewalStatus !== 'RENEWAL_REQUESTED';
+    const isRenewal = s.renewalStatus === 'RENEWAL_REQUESTED';
+    const isApproved = s.approvalStatus === 'APPROVED';
+    const hasSubmittedAssets = Boolean(s.photoUrl && s.signatureUrl);
+    const displayEmail = s.overrideEmail || s.email;
+    const isSelected = selectedIds.has(s.studentId);
+    const idArg = jsString(s.studentId);
+
+    return `
+    <tr class="review-row">
+      ${showSelect ? `<td class="select-column">${isReviewable ? `<input type="checkbox" class="bulk-cb" data-id="${escapeHtml(s.studentId)}" onchange='toggleSelect(${idArg}, this.checked)' ${isSelected ? 'checked' : ''} title="Select for bulk approve">` : '<span class="table-dash">—</span>'}</td>` : ''}
+      <td class="student-cell"><strong>${escapeHtml(s.fullName)}</strong><small>${escapeHtml(s.studentId)}</small></td>
+      <td>${escapeHtml(s.course || '—')}</td>
+      <td class="recipient-cell"><span title="${escapeHtml(displayEmail)}">${escapeHtml(displayEmail || '—')}</span><button class="table-icon-button" onclick='event.stopPropagation();openEmailModal(${idArg})' aria-label="Edit recipient email" title="Edit recipient email">${icons.edit}</button></td>
+      <td>${escapeHtml(s.generatedDate || '—')}</td>
+      <td>${escapeHtml(s.temporaryExpiryDate || '—')}</td>
+      <td>${statusBadge(s)}</td>
+      <td class="table-actions">
+        ${hasSubmittedAssets ? `<button class="table-action preview-action" onclick='event.stopPropagation();openIdPreview(${idArg})' title="Preview ID">${icons.eye || 'Preview'}</button>` : ''}
+        ${isReviewable ? `<button class="table-action approve-action" onclick='event.stopPropagation();approveStudent(${idArg}, this)' title="Approve">${icons.check}</button>` : ''}
+        ${isRenewal ? `<button class="table-action renew-action" onclick='event.stopPropagation();openRenewalModal(${idArg})' title="Extend renewal">${icons.refresh}</button>` : ''}
+        ${isReviewable ? `<button class="table-action reject-action" onclick='event.stopPropagation();openRejectModal(${idArg})' title="Reject">${icons.x}</button>` : ''}
+        ${hasSubmittedAssets ? `<button class="table-action download-action" onclick='event.stopPropagation();downloadDocument(${idArg}, this)' title="Generate / download PDF">${icons.download}</button>` : ''}
+        ${isApproved ? `<button class="table-action email-action" data-id="${escapeHtml(s.studentId)}" onclick='event.stopPropagation();sendEmail(${idArg})' title="Send email">${icons.mail}</button>` : ''}
+      </td>
+    </tr>`;
+  }).join('')}</tbody>
+    </table>
+  </div>`;
+
+  updateCounts();
+}
+
+// ── Update counts ──────────────────────────────────────────
+function updateCounts() {
+  const pending = students.filter(s => s.approvalStatus === 'PENDING_REVIEW' && s.renewalStatus !== 'RENEWAL_REQUESTED').length;
+  const renewal = students.filter(s => s.renewalStatus === 'RENEWAL_REQUESTED').length;
+  const approved = students.filter(s => s.approvalStatus === 'APPROVED'
+    && s.renewalStatus !== 'RENEWAL_REQUESTED'
+    && s.emailStatus !== 'SENT').length;
+
+  const set = (id, value) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+  };
+  set('pendingCount', pending);
+  set('renewalCount', renewal);
+  set('approvedTotalCount', approved);
+  set('approvedCount', approved);
+}
+
+// ── Actions ────────────────────────────────────────────────
+async function approveStudent(studentId, btn) {
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span>';
+  try {
+    const res = await fetch(`/admin/api/students/${studentId}/approve`, { method: 'POST' });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Approve request failed.');
+    if (data.success && data.student) {
+      const idx = students.findIndex(s => s.studentId === studentId);
+      if (idx !== -1) students[idx] = data.student;
+      renderCards();
+      showToast('ID approved and queued for email.');
+    } else {
+      showToast(data.error || 'Failed to approve ID', true);
+    }
+  } catch (err) {
+    showToast(err.message || 'Failed to approve ID', true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = `${icons.check} Approve`;
+  }
+}
+
+// ── Dropdowns ──────────────────────────────────────────────
+function toggleDropdown(id, e) {
+  e.stopPropagation();
+  const dd = document.getElementById(id);
+  const isHidden = dd.classList.contains('hidden');
+  closeDropdowns();
+  if (isHidden) dd.classList.remove('hidden');
+}
+
+function closeDropdowns() {
+  document.querySelectorAll('.dropdown').forEach(d => d.classList.add('hidden'));
+}
+document.addEventListener('click', closeDropdowns);
+
+// ── Bulk Actions ───────────────────────────────────────────
+function toggleSelect(id, isChecked) {
+  if (isChecked) selectedIds.add(id);
+  else selectedIds.delete(id);
+  updateBulkApproveBtn();
+}
+
+function updateBulkApproveBtn() {
+  const btn = document.getElementById('bulkApproveBtn');
+  const count = document.getElementById('bulkCount');
+  if (selectedIds.size > 0) {
+    btn.style.display = 'inline-flex';
+    count.textContent = selectedIds.size;
+  } else {
+    btn.style.display = 'none';
+  }
+}
+
+async function bulkApprove() {
+  if (selectedIds.size === 0) return;
+  const btn = document.getElementById('bulkApproveBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Approving...';
+  
+  try {
+    const res = await fetch('/admin/api/students/bulk-approve', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentIds: Array.from(selectedIds) })
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Bulk approval failed.');
+    if (data.success) {
+      selectedIds.clear();
+      showToast('Bulk approve successful!');
+      await loadStudents();
+    } else {
+      showToast(data.error || 'Bulk approval failed.', true);
+    }
+  } catch (err) {
+    showToast(err.message || 'Bulk approve failed', true);
+  } finally {
+    btn.disabled = false;
+    updateBulkApproveBtn();
+  }
+}
+
+async function downloadDocument(studentId, btn) {
+  btn.classList.add('loading');
+  btn.innerHTML = '<span class="spinner" style="border-color:rgba(0,0,0,.2);border-top-color:#64748b"></span>';
+  try {
+    const res = await fetch(`/admin/api/students/${studentId}/download`);
+    if (!res.ok) {
+      const err = await res.json();
+      throw new Error(err.error || 'Download failed');
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `CCT_Temporary_ID_${studentId}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast(`${studentId} document download started.`);
+    // Refresh student data
+    await loadStudents();
+  } catch (err) {
+    showToast(err.message || 'Download failed.', true);
+  } finally {
+    btn.classList.remove('loading');
+    btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>`;
+  }
+}
+
+// ── Send single email ──────────────────────────────────────────────────────────
+async function sendEmail(studentId) {
+  const row = students.find(s => s.studentId === studentId);
+  const btn = document.querySelector(`.email-action[data-id="${CSS.escape(String(studentId))}"]`);
+  if (btn) {
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner spinner-dark"></span>';
+  }
+  showToast(`Sending email to ${row?.fullName || studentId}…`);
+  try {
+    const res = await fetch(`/admin/api/students/${studentId}/email`, { method: 'POST' });
+    const data = await res.json().catch(() => ({}));
+    if (data.success) {
+      showToast('Email sent successfully!');
+      await loadStudents();
+    } else {
+      showToast(data.error || 'Email failed', true);
+    }
+  } catch (err) {
+    showToast('Email failed', true);
+  } finally {
+    if (btn) {
+      btn.disabled = false;
+      btn.innerHTML = icons.mail;
+    }
+  }
+}
+
+// ── Email progress modal ───────────────────────────────────
+function resetEmailProgress() {
+  document.getElementById('emailProgressTitle').textContent = 'Sending temporary IDs';
+  document.getElementById('emailProgressCopy').textContent = 'Preparing the email queue…';
+  document.getElementById('emailProgressFill').style.width = '0%';
+  document.getElementById('emailProgressBarWrap').setAttribute('aria-valuenow', '0');
+  document.getElementById('emailProgressCount').textContent = '0 / 0';
+  document.getElementById('emailProgressPercent').textContent = '0%';
+  document.getElementById('emailProgressList').innerHTML = '';
+  const closeBtn = document.getElementById('emailProgressClose');
+  closeBtn.disabled = true;
+  closeBtn.textContent = 'Sending…';
+}
+
+function updateEmailProgress({ processed, total, percent }) {
+  const safePercent = Math.max(0, Math.min(100, Math.round(percent)));
+  document.getElementById('emailProgressFill').style.width = `${safePercent}%`;
+  document.getElementById('emailProgressBarWrap').setAttribute('aria-valuenow', String(safePercent));
+  document.getElementById('emailProgressCount').textContent = `${processed} / ${total}`;
+  document.getElementById('emailProgressPercent').textContent = `${safePercent}%`;
+}
+
+function appendEmailProgressItem({ studentId, studentName, status, error }) {
+  const list = document.getElementById('emailProgressList');
+  const item = document.createElement('li');
+  item.className = status === 'SENT' ? 'is-sent' : 'is-failed';
+  const mark = status === 'SENT'
+    ? '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12 4 4L19 6"/></svg>'
+    : '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="m6 6 12 12M18 6 6 18"/></svg>';
+  item.innerHTML = `<span>${mark}</span><strong>${escapeHtml(studentName || studentId)}</strong><small>${escapeHtml(status === 'SENT' ? 'Sent' : (error || 'Failed'))}</small>`;
+  list.prepend(item);
+  while (list.children.length > 6) list.removeChild(list.lastChild);
+}
+
+// Reads a newline-delimited JSON stream and calls onEvent for each line.
+async function readNdjsonStream(res, onEvent) {
+  const reader = res.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = '';
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+    const lines = buffer.split('\n');
+    buffer = lines.pop() || '';
+    for (const line of lines) {
+      if (!line.trim()) continue;
+      try { onEvent(JSON.parse(line)); } catch (_) {}
+    }
+  }
+  if (buffer.trim()) {
+    try { onEvent(JSON.parse(buffer)); } catch (_) {}
+  }
+}
+
+async function sendApprovedEmails() {
+  const btn = document.getElementById('sendBulkBtn');
+  const original = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Working…';
+  resetEmailProgress();
+  openModal('emailProgressModal');
+
+  try {
+    // Step 1 — generate the PDF for every approved student that needs one.
+    document.getElementById('emailProgressTitle').textContent = 'Generating ID documents';
+    document.getElementById('emailProgressCopy').textContent = 'Preparing approved temporary IDs…';
+
+    const genRes = await fetch('/admin/api/documents/generate-approved', { method: 'POST' });
+    if (!genRes.ok) {
+      const data = await genRes.json().catch(() => ({}));
+      throw new Error(data.error || 'Document generation failed.');
+    }
+
+    let genTotal = 0;
+    let genDone = 0;
+    let genFailed = 0;
+    await readNdjsonStream(genRes, event => {
+      if (event.type === 'start') {
+        genTotal = event.total;
+        document.getElementById('emailProgressCopy').textContent = `Generating ${genTotal} temporary ID document(s)…`;
+        updateEmailProgress({ processed: 0, total: genTotal, percent: 0 });
+      } else if (event.type === 'progress') {
+        genDone = event.processed;
+        if (event.status === 'FAILED') genFailed += 1;
+        updateEmailProgress({ processed: genDone, total: event.total, percent: (genDone / event.total) * 100 });
+        appendEmailProgressItem({ ...event, status: event.status === 'GENERATED' ? 'SENT' : 'FAILED' });
+      } else if (event.type === 'done') {
+        if (event.message) document.getElementById('emailProgressCopy').textContent = event.message;
+      }
+    });
+
+    if (genTotal === 0) {
+      document.getElementById('emailProgressTitle').textContent = 'Nothing to send';
+      document.getElementById('emailProgressCopy').textContent = 'There are no approved IDs to generate or email.';
+      const closeBtn = document.getElementById('emailProgressClose');
+      closeBtn.disabled = false;
+      closeBtn.textContent = 'Close';
+      showToast('There are no approved IDs to generate or email.', true);
+      return;
+    }
+
+    // Step 2 — email every approved ID that now has a document.
+    document.getElementById('emailProgressTitle').textContent = 'Sending temporary IDs';
+    document.getElementById('emailProgressCopy').textContent = 'Dispatching emails…';
+    document.getElementById('emailProgressList').innerHTML = '';
+    updateEmailProgress({ processed: 0, total: genTotal, percent: 0 });
+
+    const res = await fetch('/admin/api/email/send-approved', { method: 'POST' });
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}));
+      throw new Error(data.error || 'Email dispatch failed.');
+    }
+
+    let finalResults = null;
+    let total = 0;
+
+    await readNdjsonStream(res, event => {
+      if (event.type === 'start') {
+        total = event.total;
+        document.getElementById('emailProgressCopy').textContent = `Sending ${total} approved temporary ID(s)…`;
+        updateEmailProgress({ processed: 0, total, percent: 0 });
+      } else if (event.type === 'progress') {
+        total = event.total;
+        updateEmailProgress({ processed: event.processed, total, percent: (event.processed / total) * 100 });
+        appendEmailProgressItem(event);
+      } else if (event.type === 'done') {
+        finalResults = event.results || { success: 0, failed: 0 };
+        if (event.message) document.getElementById('emailProgressCopy').textContent = event.message;
+      }
+    });
+
+    const success = finalResults?.success || 0;
+    const failed = finalResults?.failed || 0;
+    updateEmailProgress({ processed: success + failed, total: total || success + failed, percent: 100 });
+    document.getElementById('emailProgressTitle').textContent = failed > 0 ? 'Email dispatch finished' : 'Emails sent';
+    document.getElementById('emailProgressCopy').textContent = total === 0
+      ? 'No approved IDs are ready to email.'
+      : `${success} email(s) sent${failed ? `, ${failed} failed` : ''}.`;
+
+    const closeBtn = document.getElementById('emailProgressClose');
+    closeBtn.disabled = false;
+    closeBtn.textContent = 'Done';
+
+    if (success > 0 && failed > 0) showToast(`${success} email(s) sent; ${failed} failed.`, true);
+    else if (success > 0) showToast(`${success} email(s) sent successfully.`);
+    else if (total === 0) showToast('No approved IDs are ready to email.');
+    else showToast('Email dispatch failed.', true);
+
+    await loadStudents();
+  } catch (err) {
+    document.getElementById('emailProgressTitle').textContent = 'Email dispatch failed';
+    document.getElementById('emailProgressCopy').textContent = err.message || 'Email dispatch failed.';
+    const closeBtn = document.getElementById('emailProgressClose');
+    closeBtn.disabled = false;
+    closeBtn.textContent = 'Close';
+    showToast(err.message || 'Email dispatch failed.', true);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = original;
+    updateCounts();
+  }
+}
+
+// ── Email Modal ────────────────────────────────────────────
+function openEmailModal(studentId) {
+  activeStudentId = studentId;
+  const s = students.find(s => s.studentId === studentId);
+  const input = document.getElementById('emailInput');
+  input.value = s.overrideEmail || s.email;
+  openModal('emailModal');
+  // Focus and select so the admin can type a new address immediately.
+  setTimeout(() => { input.focus(); input.select(); }, 50);
+}
+
+async function saveEmail() {
+  const input = document.getElementById('emailInput');
+  const email = input.value.trim();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    input.classList.add('input-invalid');
+    input.focus();
+    showToast('Please enter a valid email address.', true);
+    return;
+  }
+  input.classList.remove('input-invalid');
+  const saveBtn = document.getElementById('saveEmailBtn');
+  const originalLabel = saveBtn.textContent;
+  saveBtn.disabled = true;
+  saveBtn.innerHTML = '<span class="spinner"></span> Saving…';
+  try {
+    const res = await fetch('/admin/api/email/override', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentId: activeStudentId, overrideEmail: email }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Recipient email update failed.');
+    if (data.success) {
+      const idx = students.findIndex(s => s.studentId === activeStudentId);
+      if (idx !== -1) students[idx].overrideEmail = email;
+      closeModal('emailModal');
+      renderCards();
+      showToast('Recipient email updated.');
+    }
+  } catch (err) {
+    showToast(err.message || 'Failed to update email.', true);
+  } finally {
+    saveBtn.disabled = false;
+    saveBtn.textContent = originalLabel;
+  }
+}
+
+// ── Renewal Modal ──────────────────────────────────────────
+function openRenewalModal(studentId) {
+  activeStudentId = studentId;
+  const s = students.find(s => s.studentId === studentId);
+  document.getElementById('renewalStudentName').textContent = s.fullName;
+  openModal('renewalModal');
+}
+
+async function saveRenewal() {
+  if (!activeStudentId) return;
+  const days = document.getElementById('renewalDays').value;
+  try {
+    const res = await fetch('/admin/api/renewals/process', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ studentIds: [activeStudentId], extensionDays: days }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok || !data.success) throw new Error(data.error || 'Renewal failed.');
+    const failed = (data.results || []).filter(result => !result.success);
+    if (failed.length > 0) throw new Error(failed.map(result => `${result.studentId}: ${result.error}`).join(', '));
+    if (data.success) {
+      closeModal('renewalModal');
+      await loadStudents();
+      showToast(`ID renewed — extended by ${days} days.`);
+    }
+  } catch (err) {
+    showToast(err.message || 'Renewal failed.', true);
+  }
+}
+
+// ── Reject Modal ───────────────────────────────────────────
+function openRejectModal(studentId) {
+  activeStudentId = studentId;
+  const s = students.find(s => s.studentId === studentId);
+  document.getElementById('rejectStudentName').textContent = s.fullName;
+  document.getElementById('rejectReason').value = '';
+  openModal('rejectModal');
+}
+
+async function saveReject() {
+  const reason = document.getElementById('rejectReason').value.trim();
+  try {
+    const res = await fetch(`/admin/api/students/${activeStudentId}/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(data.error || 'Rejection failed.');
+    if (data.success && data.student) {
+      const idx = students.findIndex(s => s.studentId === activeStudentId);
+      if (idx !== -1) students[idx] = data.student;
+      closeModal('rejectModal');
+      renderCards();
+      showToast('Submission rejected.');
+    }
+  } catch (err) {
+    showToast(err.message || 'Rejection failed.', true);
+  }
+}
+
+// ── Modal helpers ──────────────────────────────────────────
+function openModal(id) {
+  document.getElementById(id).classList.remove('hidden');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal(id) {
+  if (id === 'idPreviewModal') document.getElementById('idPreviewFrame').src = 'about:blank';
+  document.getElementById(id).classList.add('hidden');
+  document.body.style.overflow = '';
+  activeStudentId = null;
+}
+
+// Close modal on backdrop click
+document.querySelectorAll('.modal-backdrop').forEach(el => {
+  el.addEventListener('click', e => {
+    if (e.target === el) closeModal(el.id);
+  });
+});
+
+// Keyboard shortcuts: Esc closes the top-most modal, Enter submits the
+// renewal and reject dialogs.
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    const open = [...document.querySelectorAll('.modal-backdrop:not(.hidden)')].pop();
+    if (open) closeModal(open.id);
+    return;
+  }
+  if (e.key === 'Enter' && !e.shiftKey) {
+    const target = e.target;
+    if (target?.id === 'renewalDays') { e.preventDefault(); saveRenewal(); }
+    if (target?.id === 'rejectReason' && !e.ctrlKey) { e.preventDefault(); saveReject(); }
+  }
+});
+
+// ── Global Settings ────────────────────────────────────────
+let currentSettings = {};
+let presidentSigMode = 'draw';
+let presidentSigDataUrl = null;
+let presidentSigCanvas;
+let presidentSigCtx;
+let presidentSigDrawing = false;
+
+function initPresidentSignatureEditor() {
+  presidentSigCanvas = document.getElementById('presidentSignatureCanvas');
+  presidentSigCtx = presidentSigCanvas.getContext('2d', { willReadFrequently: true });
+  resetPresidentSignatureCanvas();
+
+  const point = event => {
+    const rect = presidentSigCanvas.getBoundingClientRect();
+    return {
+      x: (event.clientX - rect.left) * presidentSigCanvas.width / rect.width,
+      y: (event.clientY - rect.top) * presidentSigCanvas.height / rect.height,
+    };
+  };
+  presidentSigCanvas.addEventListener('pointerdown', event => {
+    if (presidentSigMode !== 'draw') return;
+    presidentSigDrawing = true;
+    const p = point(event);
+    presidentSigCtx.beginPath();
+    presidentSigCtx.moveTo(p.x, p.y);
+    presidentSigCanvas.setPointerCapture(event.pointerId);
+  });
+  presidentSigCanvas.addEventListener('pointermove', event => {
+    if (!presidentSigDrawing) return;
+    const p = point(event);
+    presidentSigCtx.lineTo(p.x, p.y);
+    presidentSigCtx.stroke();
+  });
+  ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => {
+    presidentSigCanvas.addEventListener(type, () => { presidentSigDrawing = false; });
+  });
+}
+
+function resetPresidentSignatureCanvas() {
+  if (!presidentSigCtx) return;
+  presidentSigCtx.clearRect(0, 0, presidentSigCanvas.width, presidentSigCanvas.height);
+  presidentSigCtx.fillStyle = '#fff';
+  presidentSigCtx.fillRect(0, 0, presidentSigCanvas.width, presidentSigCanvas.height);
+  presidentSigCtx.strokeStyle = '#000';
+  presidentSigCtx.lineWidth = 3;
+  presidentSigCtx.lineCap = 'round';
+  presidentSigCtx.lineJoin = 'round';
+  presidentSigDataUrl = null;
+}
+
+function signatureDataUrlFromCanvas(canvas) {
+  const source = canvas.getContext('2d', { willReadFrequently: true });
+  const image = source.getImageData(0, 0, canvas.width, canvas.height);
+  const data = image.data;
+  let minX = canvas.width, minY = canvas.height, maxX = -1, maxY = -1;
+  for (let i = 0; i < data.length; i += 4) {
+    if (data[i] > 205 && data[i + 1] > 205 && data[i + 2] > 205) data[i + 3] = 0;
+    if (data[i + 3] > 18) {
+      const px = i / 4;
+      const x = px % canvas.width;
+      const y = Math.floor(px / canvas.width);
+      minX = Math.min(minX, x); minY = Math.min(minY, y);
+      maxX = Math.max(maxX, x); maxY = Math.max(maxY, y);
+    }
+  }
+  if (maxX < 0) return null;
+  const pad = 12;
+  const x = Math.max(0, minX - pad), y = Math.max(0, minY - pad);
+  const right = Math.min(canvas.width - 1, maxX + pad), bottom = Math.min(canvas.height - 1, maxY + pad);
+  const output = document.createElement('canvas');
+  output.width = right - x + 1; output.height = bottom - y + 1;
+  output.getContext('2d').putImageData(image, -x, -y);
+  return output.toDataURL('image/png');
+}
+
+function setPresidentSignatureMode(mode) {
+  presidentSigMode = mode;
+  document.getElementById('presSigDrawTab').classList.toggle('active', mode === 'draw');
+  document.getElementById('presSigUploadTab').classList.toggle('active', mode === 'upload');
+  presidentSigCanvas.classList.toggle('hidden', mode !== 'draw');
+  document.getElementById('presSigUploadPanel').classList.toggle('hidden', mode !== 'upload');
+}
+
+function triggerPresidentSigUpload() {
+  document.getElementById('presidentSigUpload').click();
+}
+
+function handlePresidentSigFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = event => {
+    const image = new Image();
+    image.onload = () => {
+      resetPresidentSignatureCanvas();
+      const scale = Math.min(presidentSigCanvas.width / image.width, presidentSigCanvas.height / image.height);
+      const width = image.width * scale, height = image.height * scale;
+      presidentSigCtx.drawImage(image, (presidentSigCanvas.width - width) / 2, (presidentSigCanvas.height - height) / 2, width, height);
+      presidentSigDataUrl = signatureDataUrlFromCanvas(presidentSigCanvas);
+      const preview = document.getElementById('presidentSigPreview');
+      preview.src = presidentSigDataUrl || '';
+      preview.classList.toggle('visible', Boolean(presidentSigDataUrl));
+    };
+    image.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function clearPresidentSignature() {
+  resetPresidentSignatureCanvas();
+  document.getElementById('presidentSigUpload').value = '';
+  document.getElementById('presidentSigPreview').classList.remove('visible');
+}
+async function openGlobalSettings() {
+  setActiveNav('navSettings');
+  try {
+    const res = await fetch('/admin/api/settings');
+    if (res.ok) {
+      currentSettings = await res.json();
+      document.getElementById('signerNameInput').value = currentSettings.authorizedSignerName || '';
+      document.getElementById('signerRoleInput').value = currentSettings.authorizedSignerRole || '';
+      document.getElementById('signerOrgInput').value = currentSettings.schoolName || '';
+      document.getElementById('presidentNameInput').value = currentSettings.presidentName || '';
+      document.getElementById('presidentTitleInput').value = currentSettings.presidentTitle || '';
+      document.getElementById('presidentSigUpload').value = '';
+      clearPresidentSignature();
+      const preview = document.getElementById('presidentSigPreview');
+      if (currentSettings.presidentSignatureUrl) {
+        preview.src = `/${currentSettings.presidentSignatureUrl}?t=${Date.now()}`;
+        preview.classList.add('visible');
+      }
+    }
+  } catch (e) {}
+  openModal('settingsModal');
+}
+
+async function saveGlobalSettings() {
+  const btn = document.getElementById('saveSettingsBtn');
+  btn.disabled = true;
+  btn.textContent = 'Saving...';
+  
+  const updates = {
+    authorizedSignerName: document.getElementById('signerNameInput').value.trim(),
+    authorizedSignerRole: document.getElementById('signerRoleInput').value.trim(),
+    schoolName: document.getElementById('signerOrgInput').value.trim(),
+    presidentName: document.getElementById('presidentNameInput').value.trim(),
+    presidentTitle: document.getElementById('presidentTitleInput').value.trim(),
+  };
+
+  try {
+    const res = await fetch('/admin/api/settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    });
+    if (!res.ok) throw new Error('Settings update failed.');
+    
+    const signatureData = presidentSigMode === 'draw'
+      ? signatureDataUrlFromCanvas(presidentSigCanvas)
+      : presidentSigDataUrl;
+    if (signatureData) {
+      const fd = new FormData();
+      fd.append('presidentSignatureData', signatureData);
+      const signatureRes = await fetch('/admin/api/settings/president-signature', {
+        method: 'POST',
+        body: fd
+      });
+      if (!signatureRes.ok) {
+        const error = await signatureRes.json().catch(() => ({}));
+        throw new Error(error.error || 'Signature upload failed.');
+      }
+    }
+
+    showToast('Settings saved successfully.');
+    closeModal('settingsModal');
+  } catch (e) {
+    showToast('Failed to save settings.', true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save settings';
+  }
+}
+
+// ── Sidebar collapse ───────────────────────────────────────
+function toggleSidebar() {
+  const sidebar = document.getElementById('sidebar');
+  const collapsed = sidebar.classList.toggle('collapsed');
+  document.getElementById('navLabel').style.display = collapsed ? 'none' : '';
+  document.getElementById('sidebarBottom').style.display = collapsed ? 'none' : '';
+  document.querySelectorAll('.brand-text').forEach(el => {
+    el.style.display = collapsed ? 'none' : '';
+  });
+  document.querySelectorAll('.nav-item span').forEach(el => {
+    el.style.display = collapsed ? 'none' : '';
+  });
+}
+
+// ── Auth ───────────────────────────────────────────────────
+async function logout() {
+  try {
+    const res = await fetch('/api/auth/logout', { method: 'POST' });
+    const data = await res.json();
+    if (res.ok) {
+      window.location.href = data.redirectUrl || '/admin/login';
+    } else {
+      showToast('Logout failed', true);
+    }
+  } catch (err) {
+    showToast('Logout failed', true);
+  }
+}
+
+// ── Init ───────────────────────────────────────────────────
+loadAdminInfo();
+initPresidentSignatureEditor();
+loadStudents();
+setInterval(() => loadStudents({ silent: true }), 10000); // Reflect student submissions and admin actions without a manual refresh.
+window.addEventListener('focus', () => loadStudents({ silent: true }));
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') loadStudents({ silent: true });
+});
+</script>
+</body>
+</html>

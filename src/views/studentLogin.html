@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Student Login — Student ID Management</title>
+  <link rel="stylesheet" href="/public/css/styles.css">
+  <style>
+    body {
+      background: #f7f8fa;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      margin: 0;
+    }
+    .auth-card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 400px;
+      width: 100%;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .auth-card h1 {
+      font-size: 1.5rem;
+      margin: 0 0 8px;
+    }
+    .auth-card p {
+      color: #64748b;
+      font-size: 0.95rem;
+      margin: 0 0 24px;
+      line-height: 1.4;
+    }
+    .auth-form {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      text-align: left;
+    }
+    .input-group label {
+      font-size: 0.85rem;
+      font-weight: 500;
+      color: #172235;
+    }
+    .input-group input {
+      padding: 10px 12px;
+      border: 1px solid #d1d5db;
+      border-radius: 8px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .input-group input:focus {
+      border-color: #d73925;
+    }
+    .submit-btn {
+      margin-top: 8px;
+      background: #d73925;
+      color: #fff;
+      border: none;
+      padding: 12px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .submit-btn:disabled {
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .error-msg {
+      color: #d73925;
+      font-size: 0.85rem;
+      margin-top: -8px;
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="auth-card">
+    <h1>Student Portal Access</h1>
+    <p>Enter your Student ID to access your temporary ID photo and signature upload portal.</p>
+    
+    <form class="auth-form" id="studentForm">
+      <div class="input-group">
+        <label for="studentId">Student ID</label>
+        <input type="text" id="studentId" placeholder="e.g. 2023011xxx" required autocomplete="off">
+      </div>
+      <div class="error-msg" id="errorMsg"></div>
+      
+      <button type="submit" class="submit-btn" id="submitBtn">
+        Continue
+      </button>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('studentForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('submitBtn');
+      const err = document.getElementById('errorMsg');
+      const studentId = document.getElementById('studentId').value;
+
+      btn.disabled = true;
+      btn.innerHTML = '<span class="spinner" style="border-top-color:#fff"></span>';
+      err.style.display = 'none';
+
+      try {
+        const res = await fetch('/api/student/lookup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ studentId })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          window.location.href = data.redirectUrl;
+        } else {
+          throw new Error(data.error || 'Student not found');
+        }
+      } catch (error) {
+        err.textContent = error.message;
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.innerHTML = 'Continue';
+      }
+    });
+  </script>
+
+</body>
+</html>
