@@ -46,6 +46,32 @@ function formatBytes(bytes) {
   return `${Math.round(bytes / 1024)} KB`;
 }
 
+// Expiry dates are stored as ISO calendar dates (YYYY-MM-DD). Keep the
+// displayed expiry date valid through that day and redirect starting the next
+// day. Using the same UTC date format as the import service keeps the check
+// consistent with the value saved in SQLite.
+function isTemporaryIdExpired(student) {
+  const expiryDate = String(student?.temporaryExpiryDate || "").trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(expiryDate)) return false;
+
+  const today = new Date().toISOString().split("T")[0];
+  return today > expiryDate;
+}
+
+function renewalUrlFor(student) {
+  if (!student?.studentId || !student?.renewalToken) return "";
+
+  const params = new URLSearchParams({
+    studentId: String(student.studentId),
+    token: String(student.renewalToken),
+  });
+  return `/api/renew?${params.toString()}`;
+}
+
+function isApprovedTemporaryId(student) {
+  return student?.approvalStatus === "APPROVED";
+}
+
 function isSubmissionLocked(student) {
   if (!student || student.approvalStatus === "REJECTED") return false;
 
@@ -107,6 +133,11 @@ export async function getUploadPage(req, res) {
       h2{color:#172235;margin:0 0 10px;} p{color:#64748b;}</style></head>
       <body><div class="card"><h2>Invalid or Expired Link</h2><p>This upload link is no longer valid. Please contact [mis@citycollegeoftagaytay.edu.ph] for a new link.</p></div></body></html>
     `);
+  }
+
+  if (isApprovedTemporaryId(student) && isTemporaryIdExpired(student)) {
+    const renewalUrl = renewalUrlFor(student);
+    if (renewalUrl) return res.redirect(renewalUrl);
   }
 
   if (isSubmissionLocked(student)) {
