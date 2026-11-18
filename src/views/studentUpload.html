@@ -169,8 +169,8 @@
                   />
                   <circle cx="12" cy="13" r="3" />
                 </svg>
-                <strong>Your 2x2 photo appears here</strong>
-                <small>Square crop · JPG or PNG · max 5 MB</small>
+                <strong>Your photo appears here</strong>
+                <small>Square crop · JPG, PNG or WEBP · max 2 MB</small>
               </div>
               <img
                 id="photoPreview"
@@ -509,9 +509,9 @@
       import { SignatureEngine } from "/public/js/signature.js";
 
       // ── Limits ─────────────────────────────────────────────────
-      const MAX_PHOTO_BYTES = 5 * 1024 * 1024; // 5 MB
+      const MAX_PHOTO_BYTES = 2 * 1024 * 1024; // 2 MB
       const MAX_SIGNATURE_BYTES = 5 * 1024 * 1024; // 5 MB
-      const MIN_PHOTO_DIMENSION = 300; // px (shortest side)
+      const MIN_PHOTO_DIMENSION = 1; // px — accept any size (even 1×1)
       const MAX_PHOTO_DIMENSION = 6000; // px (longest side)
       const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/webp"];
       const PHOTO_OUTPUT_SIZE = 600; // 2x2 ID photo, exported as 600x600 px
@@ -664,7 +664,7 @@
             input.value = "";
             showFieldError(
               "photoError",
-              `Photo resolution is too low (${width}×${height}px). The shortest side must be at least ${MIN_PHOTO_DIMENSION}px. Please upload a larger image.`,
+              `Photo resolution is too low (${width}×${height}px). Please upload a larger image.`,
             );
             return;
           }

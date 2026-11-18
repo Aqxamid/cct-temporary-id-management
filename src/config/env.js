@@ -16,4 +16,16 @@ export const PUBLIC_BASE_URL = process.env.PUBLIC_BASE_URL || `http://localhost:
 export const EMAIL_BANNER_URL = process.env.EMAIL_BANNER_URL || '';
 export const SUBMISSION_COMPLETE_REDIRECT_URL =
   process.env.SUBMISSION_COMPLETE_REDIRECT_URL || 'https://www.google.com/';
-export const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_intranet_key_2026';
+
+// JWT_SECRET must be set via environment variable in production.
+// A weak fallback is used only so the server boots in development;
+// it will log a loud warning so it is never silently used in prod.
+const _JWT_FALLBACK = 'super_secret_intranet_key_2026';
+export const JWT_SECRET = process.env.JWT_SECRET || _JWT_FALLBACK;
+
+if (!process.env.JWT_SECRET) {
+  console.warn(
+    '\n⚠️  WARNING: JWT_SECRET is not set in .env — using an insecure default key.\n' +
+    '   Set a strong, random JWT_SECRET in your .env before deploying to production.\n'
+  );
+}

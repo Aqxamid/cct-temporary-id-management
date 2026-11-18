@@ -29,10 +29,10 @@ function cleanText(value, maxLength = 200) {
     .slice(0, maxLength);
 }
 
-// Base64 payloads are ~33% larger than the decoded file, so a 5 MB photo
-// arrives as roughly 6.7 MB of text. Reject oversized payloads with a clear
+// Base64 payloads are ~33% larger than the decoded file, so a 2 MB photo
+// arrives as roughly 2.7 MB of text. Reject oversized payloads with a clear
 // message instead of letting the database throw a raw "field value too long".
-const MAX_PHOTO_BYTES = 5 * 1024 * 1024;
+const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 const MAX_SIGNATURE_BYTES = 5 * 1024 * 1024;
 
 function decodedBase64Size(dataUrl) {

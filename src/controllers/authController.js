@@ -2,8 +2,7 @@ import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { getAdminByUsername } from '../services/dbService.js';
 import { recordActivity } from '../services/logService.js';
-
-const JWT_SECRET = process.env.JWT_SECRET || 'super_secret_intranet_key_2026';
+import { JWT_SECRET } from '../config/env.js';
 
 // 1. Admin Login Handler
 export async function loginAdmin(req, res) {

@@ -43,13 +43,14 @@ const fileFilter = (req, file, cb) => {
 // regular form fields (photoData / signatureData), not as file parts. Multer
 // caps non-file fields at 1 MB by default, which produced a raw
 // "Field value too long" error for any normal-sized photo. Allow enough room
-// for a 5 MB image (~6.7 MB once base64-encoded) plus the text fields.
+// for a 2 MB photo (~2.7 MB once base64-encoded) plus a 5 MB signature
+// (~6.7 MB once base64-encoded) and text fields.
 export const uploadFields = multer({
   storage,
   fileFilter,
   limits: {
-    fileSize: 10 * 1024 * 1024, // 10MB per uploaded file
-    fieldSize: 8 * 1024 * 1024, // 8MB per text field (base64 image payloads)
+    fileSize: 10 * 1024 * 1024, // 10MB per uploaded file part (generous for sig)
+    fieldSize: 8 * 1024 * 1024, // 8MB per text field (covers base64 signature)
     fields: 20,
   },
 }).fields([

@@ -39,9 +39,10 @@ app.set('trust proxy', 1);
 // Middleware
 app.use(cors());
 // Uploads are sent as base64 data URLs, which are ~33% larger than the file.
-// 12 MB of body allows a 5 MB photo plus a 5 MB signature with headroom.
-app.use(express.json({ limit: '12mb' }));
-app.use(express.urlencoded({ extended: true, limit: '12mb' }));
+// 10 MB of body allows a 2 MB photo (~2.7 MB base64) plus a 5 MB signature
+// (~6.7 MB base64) with headroom.
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.use(cookieParser());
 
 // Serve favicon
@@ -100,10 +101,10 @@ function friendlyErrorMessage(err) {
 
   // Specific upload limits first — their messages also contain "too long".
   if (code === 'LIMIT_FIELD_VALUE' || /field value too long/i.test(raw)) {
-    return 'Your photo or signature image is too large. The maximum allowed size is 5 MB. Please compress or resize the image and try again.';
+    return 'Your photo or signature image is too large. The maximum allowed size for photos is 2 MB and for signatures is 5 MB. Please compress or resize the image and try again.';
   }
   if (code === 'LIMIT_FILE_SIZE' || /file too large/i.test(raw)) {
-    return 'The uploaded file is too large. The maximum allowed size is 5 MB.';
+    return 'The uploaded file is too large. Photos must be under 2 MB.';
   }
   if (code === 'LIMIT_FIELD_COUNT' || code === 'LIMIT_PART_COUNT') {
     return 'Too many fields were sent with the upload. Please try again.';
@@ -112,7 +113,7 @@ function friendlyErrorMessage(err) {
     return 'Unexpected file field in the upload. Please try again.';
   }
   if (code === 'SQLITE_TOOBIG' || /string or blob too big/i.test(raw)) {
-    return 'The uploaded image is too large to save. Please use a smaller photo or signature (max 5 MB) and try again.';
+    return 'The uploaded image is too large to save. Please use a smaller photo (max 2 MB) or signature (max 5 MB) and try again.';
   }
   if (code === 'SQLITE_CONSTRAINT_UNIQUE' || /UNIQUE constraint failed/i.test(raw)) {
     return 'This record already exists.';

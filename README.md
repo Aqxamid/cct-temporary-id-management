@@ -123,6 +123,25 @@ cp .env.example .env
 | `BREVO_REPLY_TO_EMAIL` | Optional reply-to address                                                                                  |
 | `BREVO_SANDBOX`        | Set to `true` to test through Brevo without delivering the message                                         |
 
+#### Generating a secure `JWT_SECRET`
+
+`JWT_SECRET` must be a long, random string. Use one of the following to generate one:
+
+**PowerShell (Windows):**
+```powershell
+-join ((1..48) | ForEach-Object { '{0:x}' -f (Get-Random -Max 16) })
+```
+
+**Bash / macOS / Linux:**
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+Copy the output and paste it into `.env`:
+```dotenv
+JWT_SECRET=paste_the_generated_string_here
+```
+
 The `.env` file contains secrets and is intentionally ignored by Git. The SQLite database, uploaded student assets, generated QR codes, generated PDFs and the president's uploaded signature are also ignored because they may contain private or generated data.
 
 ### 3. Seed the administrator account
@@ -252,7 +271,7 @@ The API endpoint is `POST /admin/api/students/import` with the file sent in a mu
 
 Students open their personal link and provide:
 
-1. A **2×2 photo** — JPG, PNG or WEBP, max **5 MB**, shortest side at least **300 px**, longest side at most **6000 px**. Clear error messages are shown when the file size or resolution limits are exceeded.
+1. A **photo** — JPG, PNG or WEBP, max **2 MB**, longest side at most **6000 px**. The photo is automatically centre-cropped to a square. Clear error messages are shown when limits are exceeded.
 2. A **signature** — drawn on screen or uploaded as an image (white background is converted to transparent PNG).
 3. **Guardian details** — guardian name, guardian contact number and home address. These are printed on the back of the ID and are required before submission.
 
